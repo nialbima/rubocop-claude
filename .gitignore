@@ -13,3 +13,4 @@
 
 *.gem
 Gemfile.lock
+tmp/

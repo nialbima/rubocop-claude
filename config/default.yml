@@ -3,6 +3,10 @@
 require:
   - rubocop-claude
 
+AllCops:
+  NewCops: disable
+  SuggestExtensions: false
+
 # =============================================================================
 # Existing RuboCop Cops - Enable/Configure
 # =============================================================================

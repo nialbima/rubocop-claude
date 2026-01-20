@@ -71,7 +71,12 @@ module RuboCop
 
         def swallows_error?(resbody_node)
           # resbody has: [exception_type, exception_var, body]
+          exception_type = resbody_node.children[0]
           body = resbody_node.body
+
+          # If catching specific error types, it's intentional - don't flag
+          # Only flag bare `rescue` or `rescue => e` (catches StandardError)
+          return false if exception_type && specific_exception_type?(exception_type)
 
           return true if body.nil?
           return true if body.nil_type?
@@ -82,6 +87,32 @@ module RuboCop
           end
 
           false
+        end
+
+        def specific_exception_type?(exception_node)
+          # exception_node can be a single constant or an array of constants
+          # We consider it "specific" if it names actual exception classes
+          # (not just StandardError or Exception which are too broad)
+          case exception_node.type
+          when :array
+            # Multiple exception types: rescue Foo, Bar
+            exception_node.children.all? { |child| specific_exception_class?(child) }
+          when :const
+            specific_exception_class?(exception_node)
+          else
+            false
+          end
+        end
+
+        def specific_exception_class?(const_node)
+          return false unless const_node.const_type?
+
+          # Get the constant name (last part of qualified name)
+          const_name = const_node.children.last.to_s
+
+          # These are too broad - catching them with nil body is suspicious
+          broad_exceptions = %w[Exception StandardError RuntimeError]
+          !broad_exceptions.include?(const_name)
         end
 
         def count_safe_nav_chain(node)

@@ -54,6 +54,46 @@ RSpec.describe RuboCop::Cop::Claude::NoOverlyDefensiveCode, :config do
         end
       RUBY
     end
+
+    it "does not register offense for specific exception with empty body" do
+      expect_no_offenses(<<~RUBY)
+        begin
+          require "optional_gem"
+        rescue LoadError
+          # Optional dependency not available
+        end
+      RUBY
+    end
+
+    it "does not register offense for multiple specific exceptions" do
+      expect_no_offenses(<<~RUBY)
+        begin
+          Dir.entries(path).each { |f| process(f) }
+        rescue Errno::ENOENT, Errno::EACCES
+          # Skip directories we can't read
+        end
+      RUBY
+    end
+
+    it "registers offense for StandardError with nil body" do
+      expect_offense(<<~RUBY)
+        begin
+          risky_operation
+        rescue StandardError
+        ^^^^^^^^^^^^^^^^^^^^ Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`.
+        end
+      RUBY
+    end
+
+    it "registers offense for Exception with nil body" do
+      expect_offense(<<~RUBY)
+        begin
+          risky_operation
+        rescue Exception
+        ^^^^^^^^^^^^^^^^ Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`.
+        end
+      RUBY
+    end
   end
 
   context "with excessive safe navigation" do

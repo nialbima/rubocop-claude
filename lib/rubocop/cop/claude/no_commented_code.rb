@@ -80,19 +80,42 @@ module RuboCop
           /\A\s*(?:encoding|coding):/,
           # Magic comments
           /\A\s*-\*-.*-\*-/,
-          # YARD/RDoc tags
-          /\A\s*@(?:param|return|raise|example|see|note|deprecated|option|yield|yieldparam|yieldreturn|api|abstract|overload)/
+          # YARD/RDoc tags (not @example - handled separately)
+          /\A\s*@(?:param|return|raise|see|note|deprecated|option|yield|yieldparam|yieldreturn|api|abstract|overload)/
         ].freeze
+
+        # YARD tags that start example blocks (code follows on subsequent indented lines)
+        YARD_EXAMPLE_START = /\A#\s*@example/.freeze
 
         def on_new_investigation
           min_lines = cop_config.fetch("MinLines", 2)
           consecutive_code_comments = []
+          in_yard_example = false
 
           processed_source.comments.each do |comment|
             # Skip inline comments (comments on same line as code)
             next if inline_comment?(comment)
 
             content = extract_content(comment)
+            raw_text = comment.text
+
+            # Track YARD @example blocks - code inside is documentation, not dead code
+            if raw_text.match?(YARD_EXAMPLE_START)
+              report_if_threshold_met(consecutive_code_comments, min_lines)
+              consecutive_code_comments = []
+              in_yard_example = true
+              next
+            end
+
+            # Inside YARD example: indented lines are example code, skip them
+            # Exit when we hit a non-indented line or another YARD tag
+            if in_yard_example
+              if yard_example_content?(raw_text)
+                next
+              else
+                in_yard_example = false
+              end
+            end
 
             if looks_like_code?(content)
               consecutive_code_comments << comment
@@ -107,6 +130,18 @@ module RuboCop
         end
 
         private
+
+        def yard_example_content?(raw_text)
+          # YARD example content is indented with spaces after the #
+          # Example: "#   code_here" or "#     more_code"
+          # Exit on: "# text" (no leading space) or "# @tag" (new YARD tag)
+          return false if raw_text.match?(/\A#\s*@/)  # New YARD tag
+          return false if raw_text.match?(/\A#[^ ]/)  # No space after #
+          return false if raw_text.match?(/\A#\s?\S/) && !raw_text.match?(/\A#\s{2,}/) # Single space + content = prose
+
+          # Indented content (2+ spaces after #) or empty comment line
+          raw_text.match?(/\A#\s{2,}/) || raw_text.match?(/\A#\s*$/)
+        end
 
         def inline_comment?(comment)
           line = processed_source.lines[comment.location.line - 1]
