@@ -118,11 +118,9 @@ module RuboCop
         end
 
         def specific_exception?(exception_node)
-          case exception_node.type
-          when :array then exception_node.children.all? { |c| specific_exception_class?(c) }
-          when :const then specific_exception_class?(exception_node)
-          else false
-          end
+          return false unless exception_node.array_type?
+
+          exception_node.children.all? { |c| specific_exception_class?(c) }
         end
 
         def specific_exception_class?(const_node)

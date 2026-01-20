@@ -72,6 +72,18 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
         def foo; end
       RUBY
     end
+
+    it 'autocorrects commented code on last line without trailing newline' do
+      # Source without trailing newline to hit the else branch in calculate_end_pos
+      expect_offense(<<~RUBY.chomp)
+        def foo; end
+        # def bar
+        ^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        #   baz
+      RUBY
+
+      expect_correction("def foo; end\n")
+    end
   end
 
   context 'with single-line commented code and MinLines: 2' do

@@ -59,7 +59,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     it 'registers an offense for dynamic symbols with Unicode' do
       expect_offense(<<~'RUBY')
         key = :"status_#{id}_✅"
-              ^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `✅` (U+2705). Use standard ASCII or add to AllowedUnicode.
+                            ^^ Avoid fancy Unicode `✅` (U+2705). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end
