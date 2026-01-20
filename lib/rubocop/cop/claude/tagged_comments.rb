@@ -14,16 +14,9 @@ module RuboCop
       #   # TODO: Fix this later
       #   # FIXME: Handle edge case
       #
-      #   # good - handle format
-      #   # TODO [@username]: Fix this later
-      #   # FIXME [Alice - @alice]: Handle edge case
-      #
-      # @example Attribution placement (anywhere in comment)
-      #   # good - at start
-      #   # TODO [@username]: Fix this later
-      #
-      #   # good - at end
-      #   # TODO: Fix this later [@username]
+      #   # good - handle format (after colon, compatible with Style/CommentAnnotation)
+      #   # TODO: [@username] Fix this later
+      #   # FIXME: [Alice - @alice] Handle edge case
       #
       # @example Case insensitive (keywords matched regardless of case)
       #   # bad
@@ -32,8 +25,8 @@ module RuboCop
       #
       # @example AI assistant attribution
       #   # good - AI-generated comments use @claude
-      #   # TODO [@claude]: Refactor to reduce complexity
-      #   # NOTE [@claude]: This pattern matches the factory in user.rb
+      #   # TODO: [@claude] Refactor to reduce complexity
+      #   # NOTE: [@claude] This pattern matches the factory in user.rb
       #
       # @example Keywords: ['TODO', 'FIXME'] (custom keyword list)
       #   # With custom keywords, only those are checked
@@ -49,7 +42,7 @@ module RuboCop
       #   [First Last - @handle] # Full name and handle
       #
       class TaggedComments < Base
-        MSG = 'Comments need attribution. Use format: # %<keyword>s [@handle]: description'
+        MSG = 'Comments need attribution. Use format: # %<keyword>s: [@handle] description'
 
         ATTRIBUTION_PATTERN = /\[(?:[\w\s]+-\s*)?@[\w-]+\]/ # Matches valid attribution: [@handle] or [Name - @handle]
 

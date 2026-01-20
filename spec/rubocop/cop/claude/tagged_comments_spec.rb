@@ -16,7 +16,7 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
     it 'registers an offense for unattributed TODO' do
       expect_offense(<<~RUBY)
         # TODO: Fix this later
-        ^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO [@handle]: description
+        ^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO: [@handle] description
         def foo; end
       RUBY
     end
@@ -24,7 +24,7 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
     it 'registers an offense for unattributed FIXME' do
       expect_offense(<<~RUBY)
         # FIXME: Handle edge case
-        ^^^^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # FIXME [@handle]: description
+        ^^^^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # FIXME: [@handle] description
         def foo; end
       RUBY
     end
@@ -32,7 +32,7 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
     it 'registers an offense for unattributed NOTE' do
       expect_offense(<<~RUBY)
         # NOTE: This is important
-        ^^^^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # NOTE [@handle]: description
+        ^^^^^^^^^^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # NOTE: [@handle] description
         def foo; end
       RUBY
     end
@@ -40,7 +40,7 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
     it 'registers an offense without colon' do
       expect_offense(<<~RUBY)
         # TODO Fix this
-        ^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO [@handle]: description
+        ^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO: [@handle] description
         def foo; end
       RUBY
     end
@@ -48,7 +48,7 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
     it 'registers an offense for lowercase keywords' do
       expect_offense(<<~RUBY)
         # todo: fix this
-        ^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO [@handle]: description
+        ^^^^^^^^^^^^^^^^ Comments need attribution. Use format: # TODO: [@handle] description
         def foo; end
       RUBY
     end

@@ -58,6 +58,20 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
         def after; end
       RUBY
     end
+
+    it 'registers an offense for commented code at end of file' do
+      expect_offense(<<~RUBY)
+        def foo; end
+        # def old_method
+        ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        #   do_something
+        # end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def foo; end
+      RUBY
+    end
   end
 
   context 'with single-line commented code and MinLines: 2' do

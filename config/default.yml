@@ -86,7 +86,7 @@ Claude/NoFancyUnicode:
 
 Claude/TaggedComments:
   Enabled: true
-  Description: "Comments need attribution. Use format: # TAG [@handle]: description"
+  Description: "Comments need attribution. Use format: # TAG: [@handle] description"
   Keywords:
     - TODO
     - FIXME

@@ -119,7 +119,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
         end
       RUBY
 
-      # NOTE [@claude]: Extra blank line is a minor whitespace artifact
+      # NOTE: [@claude] Extra blank line is a minor whitespace artifact
       expect_correction(<<~RUBY)
         class Foo
           def public_method
