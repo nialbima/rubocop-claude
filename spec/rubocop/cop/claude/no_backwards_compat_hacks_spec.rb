@@ -49,6 +49,28 @@ RSpec.describe RuboCop::Cop::Claude::NoBackwardsCompatHacks, :config do
         hash.each { |_, v| puts v }
       RUBY
     end
+
+    it 'does not register offense for normal variable assignment' do
+      expect_no_offenses(<<~RUBY)
+        value = calculate_something
+        name = "test"
+      RUBY
+    end
+
+    it 'does not register offense for underscore-prefixed block parameter' do
+      expect_no_offenses(<<~RUBY)
+        items.each { |_item| process }
+        data.map { |_key, value| value * 2 }
+      RUBY
+    end
+
+    it 'does not register offense for underscore assignment inside block' do
+      expect_no_offenses(<<~RUBY)
+        items.each do |item|
+          _copy = item
+        end
+      RUBY
+    end
   end
 
   context 'with constant re-exports' do
@@ -71,6 +93,20 @@ RSpec.describe RuboCop::Cop::Claude::NoBackwardsCompatHacks, :config do
       expect_no_offenses(<<~RUBY)
         DEFAULT_VALUE = 42
         Config = Struct.new(:name)
+      RUBY
+    end
+
+    it 'does not register offense for const assignment to non-const value' do
+      expect_no_offenses(<<~RUBY)
+        COMPUTED = calculate_value()
+        RESULT = some_method
+      RUBY
+    end
+
+    it 'does not register offense for const-to-const without compat comment' do
+      expect_no_offenses(<<~RUBY)
+        # Convenient short name for frequently used module
+        ShortName = VeryLongModuleName
       RUBY
     end
   end

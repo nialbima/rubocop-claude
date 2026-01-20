@@ -41,6 +41,28 @@ RSpec.describe RuboCop::Cop::Claude::NoOverlyDefensiveCode, :config do
       RUBY
     end
 
+    it 'registers an offense for rescue with empty return' do
+      expect_offense(<<~RUBY)
+        begin
+          risky_operation
+        rescue
+        ^^^^^^ Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`.
+          return
+        end
+      RUBY
+    end
+
+    it 'registers an offense for rescue with return nil' do
+      expect_offense(<<~RUBY)
+        begin
+          risky_operation
+        rescue
+        ^^^^^^ Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`.
+          return nil
+        end
+      RUBY
+    end
+
     it 'does not register offense for meaningful rescue' do
       expect_no_offenses(<<~RUBY)
         begin
@@ -58,6 +80,16 @@ RSpec.describe RuboCop::Cop::Claude::NoOverlyDefensiveCode, :config do
           risky_operation
         rescue
           default_value
+        end
+      RUBY
+    end
+
+    it 'does not register offense for rescue with return and value' do
+      expect_no_offenses(<<~RUBY)
+        begin
+          risky_operation
+        rescue
+          return @fallback
         end
       RUBY
     end
@@ -206,6 +238,14 @@ RSpec.describe RuboCop::Cop::Claude::NoOverlyDefensiveCode, :config do
         a && b
       RUBY
     end
+
+    it 'does not register offense for literal right side' do
+      expect_no_offenses(<<~RUBY)
+        a && 123
+        b && "string"
+        c && :symbol
+      RUBY
+    end
   end
 
   context 'with defensive nil checks and AddSafeNavigator: true' do
@@ -334,6 +374,26 @@ RSpec.describe RuboCop::Cop::Claude::NoOverlyDefensiveCode, :config do
     it 'does not register offense for different receivers' do
       expect_no_offenses(<<~RUBY)
         a.present? && b.foo
+      RUBY
+    end
+  end
+
+  context 'with regular if statements (not ternary)' do
+    it 'does not register offense for if-else' do
+      expect_no_offenses(<<~RUBY)
+        if foo.nil?
+          default
+        else
+          foo
+        end
+      RUBY
+    end
+
+    it 'does not register offense for unless' do
+      expect_no_offenses(<<~RUBY)
+        unless foo
+          default
+        end
       RUBY
     end
   end

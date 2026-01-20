@@ -87,7 +87,7 @@ module RuboCop
         def on_casgn(node)
           # Check for re-export patterns: OldName = NewName
           _, _, value = *node
-          return unless value&.const_type?
+          return unless value.const_type?
 
           # Look for backwards compatibility indicators in nearby comments
           return unless has_compat_comment_nearby?(node)

@@ -114,12 +114,10 @@ module RuboCop
         end
 
         def empty_return?(body)
-          body.return_type? && (body.children.empty? || body.children.first&.nil_type?)
+          body.return_type? && (body.children.empty? || body.children.first.nil_type?)
         end
 
         def specific_exception?(exception_node)
-          return false unless exception_node.array_type?
-
           exception_node.children.all? { |c| specific_exception_class?(c) }
         end
 
@@ -130,7 +128,7 @@ module RuboCop
         def count_safe_nav_chain(node)
           count = 1
           current = node.receiver
-          while current&.csend_type?
+          while current.csend_type?
             count += 1
             current = current.receiver
           end

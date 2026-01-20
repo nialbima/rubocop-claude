@@ -204,6 +204,12 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       RUBY
     end
 
+    it 'allows fancy unicode in interpolated strings' do
+      expect_no_offenses(<<~'RUBY')
+        puts "Hello #{name} 🎉"
+      RUBY
+    end
+
     it 'still catches fancy unicode in comments' do
       expect_offense(<<~RUBY)
         # Celebration 🎉

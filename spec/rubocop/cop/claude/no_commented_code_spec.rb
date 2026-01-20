@@ -207,6 +207,30 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
         def foo; end
       RUBY
     end
+
+    it 'exits example context when YARD tag appears' do
+      expect_offense(<<~RUBY)
+        # @example
+        #   user.save!
+        # @param name [String]
+        # user.destroy!
+        ^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        # User.delete_all
+        def foo; end
+      RUBY
+    end
+
+    it 'exits example context when comment has no space after #' do
+      expect_offense(<<~RUBY)
+        # @example
+        #   user.save!
+        ## Section header
+        # user.destroy!
+        ^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        # User.delete_all
+        def foo; end
+      RUBY
+    end
   end
 
   context 'with KEEP comments' do

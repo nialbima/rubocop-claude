@@ -71,10 +71,8 @@ module RuboCop
         end
 
         def find_following_methods(visibility_node)
-          siblings = visibility_node.parent&.children || []
+          siblings = visibility_node.parent.children
           idx = siblings.index(visibility_node)
-          return [] unless idx
-
           siblings[(idx + 1)..].take_while { |s| !standalone_visibility?(s) }.select(&:def_type?)
         end
 
@@ -105,10 +103,7 @@ module RuboCop
         end
 
         def find_visibility_section(class_node, visibility)
-          body = class_node.body
-          return unless body
-
-          body.each_child_node(:send).find { |n| n.method_name == visibility && n.arguments.empty? }
+          class_node.body.each_child_node(:send).find { |n| n.method_name == visibility && n.arguments.empty? }
         end
 
         def last_method_in_section(visibility_node)

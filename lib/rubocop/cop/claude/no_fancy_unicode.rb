@@ -124,8 +124,6 @@ module RuboCop
         end
 
         def check_for_fancy_unicode(node, value)
-          return if value.nil?
-
           fancy_chars = find_fancy_unicode(value)
           return if fancy_chars.empty?
 
@@ -147,8 +145,6 @@ module RuboCop
         end
 
         def find_fancy_unicode(text)
-          return [] if text.nil?
-
           # Find all characters that don't match the allowed pattern
           fancy = text.chars.reject { |char| char.match?(ALLOWED_PATTERN) }
 
