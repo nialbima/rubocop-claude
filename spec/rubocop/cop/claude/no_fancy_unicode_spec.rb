@@ -29,7 +29,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     it "registers an offense for emoji in interpolated string" do
       expect_offense(<<~'RUBY')
         puts "Hello #{name} 🎉"
-                            ^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+                           ^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end

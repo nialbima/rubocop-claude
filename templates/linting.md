@@ -8,7 +8,7 @@ When you hit a linting error, read the corresponding guidance file in `.claude/c
 
 | Cop | Guidance File |
 |-----|---------------|
-| `Claude/NoEmoji` | `.claude/cops/no-emoji.md` |
+| `Claude/NoFancyUnicode` | `.claude/cops/no-fancy-unicode.md` |
 | `Claude/TaggedComments` | `.claude/cops/tagged-comments.md` |
 | `Claude/NoCommentedCode` | `.claude/cops/no-commented-code.md` |
 | `Claude/NoBackwardsCompatHacks` | `.claude/cops/no-backwards-compat-hacks.md` |
