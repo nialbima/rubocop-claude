@@ -1,0 +1,110 @@
+# frozen_string_literal: true
+
+require:
+  - rubocop-claude
+
+# =============================================================================
+# Existing RuboCop Cops - Enable/Configure
+# =============================================================================
+
+# Warn on inline rubocop:disable comments - fix the issue instead
+Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: true
+  AllowedCops: []
+
+# Enforce consistent class structure ordering
+Layout/ClassStructure:
+  Enabled: true
+  ExpectedOrder:
+    - module_inclusion
+    - constants
+    - public_class_methods
+    - initializer
+    - public_methods
+    - protected_methods
+    - private_methods
+  Categories:
+    module_inclusion:
+      - include
+      - prepend
+      - extend
+
+# Enforce TODO/FIXME format with uppercase and colon
+Style/CommentAnnotation:
+  Enabled: true
+  Keywords:
+    - TODO
+    - FIXME
+    - NOTE
+    - HACK
+    - OPTIMIZE
+    - REVIEW
+  RequireColon: true
+
+# No debug statements left in code
+Lint/Debugger:
+  Enabled: true
+
+# Method chaining with indented style (leading dot, 2-space indent)
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
+
+# Flag overly complex methods
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 7
+
+# Flag bloated methods
+Metrics/AbcSize:
+  Enabled: true
+  Max: 17
+
+# =============================================================================
+# Custom Claude Cops
+# =============================================================================
+
+Claude/NoEmoji:
+  Enabled: true
+  Description: "Avoid emoji in code. Use descriptive text instead."
+  AllowedEmoji: []
+  AllowInStrings: false
+
+Claude/TaggedComments:
+  Enabled: true
+  Description: "Comments need attribution. Use format: # TAG [@handle]: description"
+  Keywords:
+    - TODO
+    - FIXME
+    - NOTE
+    - HACK
+    - OPTIMIZE
+    - REVIEW
+
+Claude/NoCommentedCode:
+  Enabled: true
+  Description: "Delete commented-out code instead of leaving it. Version control preserves history."
+  MinLines: 2
+
+Claude/NoBackwardsCompatHacks:
+  Enabled: true
+  Description: "Delete dead code. Don't preserve it for backwards compatibility."
+
+Claude/NoOverlyDefensiveCode:
+  Enabled: true
+  Description: "Trust internal code. Remove unnecessary defensive patterns."
+  MaxSafeNavigationChain: 2
+
+Claude/ExplicitVisibility:
+  Enabled: true
+  Description: "Use explicit visibility. Place `private` before each private method."
+  EnforcedStyle: modifier
+
+Claude/MethodParameterShadowing:
+  Enabled: true
+  Description: "Parameter shadows instance variable. Use a different name."
+
+Claude/MysteryRegex:
+  Enabled: true
+  Description: "Extract long regex to a named constant. Complex patterns deserve descriptive names."
+  MaxLength: 25
