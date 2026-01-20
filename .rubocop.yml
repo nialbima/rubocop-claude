@@ -1,1 +1,81 @@
-inherit_from: .rubocop_todo.yml
+# frozen_string_literal: true
+
+inherit_gem:
+  standard: config/base.yml
+
+plugins:
+  - rubocop-packaging
+  - rubocop-performance
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.1
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+
+# =============================================================================
+# Gemspec
+# =============================================================================
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: gemspec
+
+# =============================================================================
+# Layout
+# =============================================================================
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - '^\s*#'  # Comments can be longer
+
+# =============================================================================
+# Metrics
+# =============================================================================
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - '*.gemspec'
+
+# =============================================================================
+# Naming
+# =============================================================================
+
+Naming/FileName:
+  Exclude:
+    - 'lib/rubocop-claude.rb'  # Standard rubocop plugin convention
+
+Naming/PredicatePrefix:
+  Exclude:
+    - 'lib/rubocop/cop/claude/**/*'  # Cops use is_* helpers internally
+
+# =============================================================================
+# RSpec
+# =============================================================================
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 3
+
+RSpec/NestedGroups:
+  Max: 4
+
+# =============================================================================
+# Style
+# =============================================================================
+
+Style/Documentation:
+  Exclude:
+    - 'spec/**/*'
+    - 'lib/rubocop_claude/plugin.rb'
+    - 'lib/rubocop_claude/generator.rb'
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+  ConsistentQuotesInMultiline: true

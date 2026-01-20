@@ -34,15 +34,15 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 end
 
-RSpec.shared_context 'config' do
+RSpec.shared_context 'with config' do
   let(:config) do
     # Merge cop-specific config into a base config
-    hash = { 'AllCops' => { 'TargetRubyVersion' => 3.1 } }
+    hash = {'AllCops' => {'TargetRubyVersion' => 3.1}}
     hash.merge!(cop_config) if respond_to?(:cop_config)
     RuboCop::Config.new(hash, "#{Dir.pwd}/.rubocop.yml")
   end
 end
 
 RSpec.configure do |config|
-  config.include_context 'config', :config
+  config.include_context 'with config', :config
 end

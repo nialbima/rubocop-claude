@@ -61,6 +61,7 @@ module RuboCop
       #
       class NoCommentedCode < Base
         extend AutoCorrector
+
         MSG = 'Delete commented-out code instead of leaving it. Version control preserves history.'
 
         # Patterns that strongly suggest commented-out Ruby code

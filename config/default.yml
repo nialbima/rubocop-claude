@@ -114,10 +114,6 @@ Claude/ExplicitVisibility:
   Description: "Use explicit visibility. Place `private` before each private method."
   EnforcedStyle: modifier
 
-Claude/MethodParameterShadowing:
-  Enabled: true
-  Description: "Parameter shadows instance variable. Use a different name."
-
 Claude/MysteryRegex:
   Enabled: true
   Description: "Extract long regex to a named constant. Complex patterns deserve descriptive names."

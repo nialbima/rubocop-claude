@@ -55,7 +55,7 @@ module RuboCop
 
         def on_new_investigation
           keywords = cop_config.fetch('Keywords', %w[TODO FIXME NOTE HACK OPTIMIZE REVIEW])
-          pattern_str = "\\A#\\s*(#{keywords.join('|')}):?\\s+(?!\\[[@\\w])"
+          pattern_str = "\\A#\\s*(#{keywords.join("|")}):?\\s+(?!\\[[@\\w])"
           @keyword_regex = Regexp.new(pattern_str, Regexp::IGNORECASE)
 
           processed_source.comments.each do |comment|

@@ -80,6 +80,7 @@ module RuboCop
       #
       class NoOverlyDefensiveCode < Base
         extend AutoCorrector
+
         MSG_SWALLOW = "Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`."
         MSG_CHAIN = 'Trust internal code. Excessive safe navigation (%<count>d chained `&.`) suggests ' \
                     'uncertain data model. Use explicit nil checks or fix the source.'

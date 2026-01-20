@@ -39,14 +39,14 @@ module RuboCop
         def extract_regex_content(node)
           # Get the regex source without delimiters and flags
           node.children
-              .select { |child| child.is_a?(RuboCop::AST::RegexpNode) || child.is_a?(RuboCop::AST::StrNode) || child.respond_to?(:value) }
-              .map { |child| child.respond_to?(:value) ? child.value : child.source }
-              .join
-        rescue StandardError
+            .select { |child| child.is_a?(RuboCop::AST::RegexpNode) || child.is_a?(RuboCop::AST::StrNode) || child.respond_to?(:value) }
+            .map { |child| child.respond_to?(:value) ? child.value : child.source }
+            .join
+        rescue
           # Fallback: get source and strip delimiters
           source = node.source
           # Remove leading / and trailing /flags
-          source.sub(%r{\A/}, '').sub(%r{/[imxo]*\z}, '')
+          source.delete_prefix('/').sub(%r{/[imxo]*\z}, '')
         end
 
         def inside_constant_assignment?(node)
