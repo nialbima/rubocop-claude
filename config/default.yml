@@ -89,7 +89,8 @@ Claude/TaggedComments:
 Claude/NoCommentedCode:
   Enabled: true
   Description: "Delete commented-out code instead of leaving it. Version control preserves history."
-  MinLines: 2
+  MinLines: 1
+  AllowKeep: true
 
 Claude/NoBackwardsCompatHacks:
   Enabled: true

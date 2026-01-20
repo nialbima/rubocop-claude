@@ -9,4 +9,6 @@ group :development, :test do
   gem 'rspec', '~> 3.0'
   gem 'simplecov', '~> 0.22'
   gem 'simplecov-console', '~> 0.9'
+  gem "rubocop-rspec", "~> 3.9"
+  gem "rubocop-packaging", "~> 0.6.0"
 end

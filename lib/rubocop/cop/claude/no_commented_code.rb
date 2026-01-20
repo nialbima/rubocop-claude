@@ -9,7 +9,7 @@ module RuboCop
       # confuses readers, and version control already preserves history.
       # Delete it instead of commenting it out.
       #
-      # @example
+      # @example Default (flags consecutive commented code)
       #   # bad
       #   # def old_method
       #   #   do_something
@@ -19,12 +19,48 @@ module RuboCop
       #   # user.update!(name: "test")
       #   # User.find(1).destroy
       #
+      # @example Allowed - prose comments
       #   # good - explanatory comments are fine
       #   # This method handles user authentication
+      #   # and validates the session token
       #   def authenticate
       #   end
       #
+      # @example Allowed - YARD documentation
+      #   # good - @example blocks are documentation
+      #   # @example
+      #   #   user = User.new
+      #   #   user.save!
+      #   def create_user
+      #   end
+      #
+      # @example AllowKeep: true (default) - explicit exceptions with attribution
+      #   # good - KEEP comment with attribution allows intentional preservation
+      #   # KEEP [@username]: Rollback path during migration, remove after 2025-06
+      #   # def legacy_method
+      #   #   old_implementation
+      #   # end
+      #
+      #   # bad - KEEP without attribution is not allowed
+      #   # KEEP: I might need this later
+      #   # def old_method
+      #   #   do_something
+      #   # end
+      #
+      # @example AllowKeep: false (stricter)
+      #   # bad - KEEP comments not recognized, all commented code flagged
+      #   # KEEP [@username]: Reason here
+      #   # def old_method
+      #   #   do_something
+      #   # end
+      #
+      # @safety
+      #   Autocorrection deletes the commented code entirely. While this is
+      #   usually the right action, review the changes to ensure no important
+      #   context is lost. Version control preserves history if needed.
+      #
       class NoCommentedCode < Base
+        extend AutoCorrector
         MSG = 'Delete commented-out code instead of leaving it. Version control preserves history.'
 
         # Patterns that strongly suggest commented-out Ruby code
@@ -87,10 +123,15 @@ module RuboCop
         # YARD tags that start example blocks (code follows on subsequent indented lines)
         YARD_EXAMPLE_START = /\A#\s*@example/
 
+        # KEEP comment with attribution: # KEEP [@handle]: reason
+        # Reuses attribution pattern from TaggedComments
+        KEEP_PATTERN = /\A#\s*KEEP\s+\[(?:[\w\s]+-\s*)?@[\w-]+\]:/i
+
         def on_new_investigation
-          min_lines = cop_config.fetch('MinLines', 2)
+          min_lines = cop_config.fetch('MinLines', 1)
           consecutive_code_comments = []
           in_yard_example = false
+          preceded_by_keep = false
 
           processed_source.comments.each do |comment|
             # Skip inline comments (comments on same line as code)
@@ -101,9 +142,18 @@ module RuboCop
 
             # Track YARD @example blocks - code inside is documentation, not dead code
             if raw_text.match?(YARD_EXAMPLE_START)
-              report_if_threshold_met(consecutive_code_comments, min_lines)
+              report_if_threshold_met(consecutive_code_comments, min_lines, preceded_by_keep)
               consecutive_code_comments = []
               in_yard_example = true
+              preceded_by_keep = false
+              next
+            end
+
+            # Check for KEEP comment with attribution
+            if allow_keep? && raw_text.match?(KEEP_PATTERN)
+              report_if_threshold_met(consecutive_code_comments, min_lines, preceded_by_keep)
+              consecutive_code_comments = []
+              preceded_by_keep = true
               next
             end
 
@@ -113,19 +163,19 @@ module RuboCop
               next if yard_example_content?(raw_text)
 
               in_yard_example = false
-
             end
 
             if looks_like_code?(content)
               consecutive_code_comments << comment
             else
-              report_if_threshold_met(consecutive_code_comments, min_lines)
+              report_if_threshold_met(consecutive_code_comments, min_lines, preceded_by_keep)
               consecutive_code_comments = []
+              preceded_by_keep = false
             end
           end
 
           # Check remaining comments at end of file
-          report_if_threshold_met(consecutive_code_comments, min_lines)
+          report_if_threshold_met(consecutive_code_comments, min_lines, preceded_by_keep)
         end
 
         private
@@ -165,12 +215,38 @@ module RuboCop
           NON_CODE_PATTERNS.any? { |pattern| content.match?(pattern) }
         end
 
-        def report_if_threshold_met(comments, min_lines)
+        def report_if_threshold_met(comments, min_lines, preceded_by_keep)
           return if comments.length < min_lines
+          return if preceded_by_keep
 
           # Report on the first comment of the block
           first_comment = comments.first
-          add_offense(first_comment)
+          add_offense(first_comment) do |corrector|
+            remove_comment_block(corrector, comments)
+          end
+        end
+
+        def remove_comment_block(corrector, comments)
+          # Calculate the range from start of first comment line to start of line after last comment
+          first = comments.first
+          last = comments.last
+          source = first.location.expression.source_buffer
+
+          begin_pos = source.line_range(first.location.line).begin_pos
+          # Include the newline by going to the start of the next line
+          next_line = last.location.line + 1
+          end_pos = if next_line <= source.last_line
+            source.line_range(next_line).begin_pos
+          else
+            source.line_range(last.location.line).end_pos
+          end
+
+          range = Parser::Source::Range.new(source, begin_pos, end_pos)
+          corrector.remove(range)
+        end
+
+        def allow_keep?
+          cop_config.fetch('AllowKeep', true)
         end
       end
     end

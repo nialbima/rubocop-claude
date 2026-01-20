@@ -13,31 +13,49 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
   end
 
   context 'with multi-line commented code' do
-    it 'registers an offense for commented method definition' do
+    it 'registers an offense and autocorrects commented method definition' do
       expect_offense(<<~RUBY)
+        def before; end
         # def old_method
         ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
         #   do_something
         # end
-        def foo; end
+        def after; end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def before; end
+        def after; end
       RUBY
     end
 
-    it 'registers an offense for commented method calls' do
+    it 'registers an offense and autocorrects commented method calls' do
       expect_offense(<<~RUBY)
+        def before; end
         # user.update!(name: "test")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
         # User.find(1).destroy
-        def foo; end
+        def after; end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def before; end
+        def after; end
       RUBY
     end
 
-    it 'registers an offense for commented assignments' do
+    it 'registers an offense and autocorrects commented assignments' do
       expect_offense(<<~RUBY)
+        def before; end
         # @name = params[:name]
         ^^^^^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
         # value = calculate_total
-        def foo; end
+        def after; end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        def before; end
+        def after; end
       RUBY
     end
   end
@@ -160,6 +178,85 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
         # user.destroy!
         ^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
         # User.delete_all
+        def foo; end
+      RUBY
+    end
+  end
+
+  context 'with KEEP comments' do
+    it 'allows commented code preceded by KEEP with attribution' do
+      expect_no_offenses(<<~RUBY)
+        # KEEP [@username]: Rollback path during migration, remove after 2025-06
+        # def legacy_method
+        #   old_implementation
+        # end
+        def new_method; end
+      RUBY
+    end
+
+    it 'allows KEEP with name and handle' do
+      expect_no_offenses(<<~RUBY)
+        # KEEP [Alice - @alice]: Needed for backwards compat until v3
+        # OldClass = NewClass
+        def foo; end
+      RUBY
+    end
+
+    it 'still flags commented code when KEEP lacks attribution' do
+      expect_offense(<<~RUBY)
+        # KEEP: I might need this later
+        # def old_method
+        ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        #   do_something
+        # end
+        def foo; end
+      RUBY
+    end
+
+    it 'still flags commented code when KEEP has no handle' do
+      expect_offense(<<~RUBY)
+        # KEEP [username]: Missing @ symbol
+        # def old_method
+        ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        #   do_something
+        # end
+        def foo; end
+      RUBY
+    end
+
+    it 'only protects the immediately following block' do
+      expect_offense(<<~RUBY)
+        # KEEP [@username]: First block is protected
+        # def first_method
+        # end
+        #
+        # This prose breaks the KEEP protection
+        # def second_method
+        ^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        # end
+        def foo; end
+      RUBY
+    end
+  end
+
+  context 'with AllowKeep: false' do
+    let(:cop_config) do
+      {
+        'Claude/NoCommentedCode' => {
+          'Enabled' => true,
+          'MinLines' => 2,
+          'AllowKeep' => false
+        }
+      }
+    end
+
+    it 'flags commented code even with KEEP attribution' do
+      expect_offense(<<~RUBY)
+        # KEEP [@username]: This won't help when AllowKeep is false
+        # def old_method
+        ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
+        #   do_something
+        # end
         def foo; end
       RUBY
     end
