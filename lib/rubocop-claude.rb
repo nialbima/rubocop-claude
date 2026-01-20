@@ -4,7 +4,7 @@ require_relative "rubocop_claude/version"
 
 require "rubocop"
 
-require_relative "rubocop/cop/claude/no_emoji"
+require_relative "rubocop/cop/claude/no_fancy_unicode"
 require_relative "rubocop/cop/claude/tagged_comments"
 require_relative "rubocop/cop/claude/no_commented_code"
 require_relative "rubocop/cop/claude/no_backwards_compat_hacks"

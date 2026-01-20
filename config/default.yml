@@ -68,11 +68,12 @@ Metrics/AbcSize:
 # Custom Claude Cops
 # =============================================================================
 
-Claude/NoEmoji:
+Claude/NoFancyUnicode:
   Enabled: true
-  Description: "Avoid emoji in code. Use descriptive text instead."
-  AllowedEmoji: []
+  Description: "Avoid fancy Unicode. Use standard ASCII or add to AllowedUnicode."
+  AllowedUnicode: []
   AllowInStrings: false
+  AllowInComments: false
 
 Claude/TaggedComments:
   Enabled: true
