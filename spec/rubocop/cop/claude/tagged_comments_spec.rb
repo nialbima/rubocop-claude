@@ -57,21 +57,21 @@ RSpec.describe RuboCop::Cop::Claude::TaggedComments, :config do
   context "when comments have attribution" do
     it "accepts [@handle] format" do
       expect_no_offenses(<<~RUBY)
-        # TODO [@nabm]: Fix this later
+        # TODO [@username]: Fix this later
         def foo; end
       RUBY
     end
 
     it "accepts [Name - @handle] format" do
       expect_no_offenses(<<~RUBY)
-        # FIXME [Nick - @nabm]: Handle edge case
+        # FIXME [Alice - @alice]: Handle edge case
         def foo; end
       RUBY
     end
 
     it "accepts attribution anywhere in comment" do
       expect_no_offenses(<<~RUBY)
-        # TODO: Fix this later [@nabm]
+        # TODO: Fix this later [@username]
         def foo; end
       RUBY
     end

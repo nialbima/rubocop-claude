@@ -6,18 +6,47 @@ module RuboCop
       # Enforces attribution on TODO/NOTE/FIXME/HACK comments.
       #
       # Anonymous TODO comments lose context over time. Who wrote it?
-      # When? What was the context? Attribution helps track ownership.
+      # When? What was the context? Attribution helps track ownership
+      # and distinguishes human-written comments from AI-generated ones.
       #
-      # @example
+      # @example Default (attribution required)
       #   # bad
       #   # TODO: Fix this later
       #   # FIXME: Handle edge case
-      #   # NOTE: This is important
       #
-      #   # good
-      #   # TODO [@nabm]: Fix this later
-      #   # FIXME [Nick - @nabm]: Handle edge case
-      #   # NOTE [@claude]: This is important
+      #   # good - handle format
+      #   # TODO [@username]: Fix this later
+      #   # FIXME [Alice - @alice]: Handle edge case
+      #
+      # @example Attribution placement (anywhere in comment)
+      #   # good - at start
+      #   # TODO [@username]: Fix this later
+      #
+      #   # good - at end
+      #   # TODO: Fix this later [@username]
+      #
+      # @example Case insensitive (keywords matched regardless of case)
+      #   # bad
+      #   # todo: fix this
+      #   # Todo: Fix this
+      #
+      # @example AI assistant attribution
+      #   # good - AI-generated comments use @claude
+      #   # TODO [@claude]: Refactor to reduce complexity
+      #   # NOTE [@claude]: This pattern matches the factory in user.rb
+      #
+      # @example Keywords: ['TODO', 'FIXME'] (custom keyword list)
+      #   # With custom keywords, only those are checked
+      #   # bad - TODO is in the list
+      #   # TODO: Fix this
+      #
+      #   # good - NOTE not in the custom list, so not checked
+      #   # NOTE: No attribution needed
+      #
+      # @example Valid attribution formats
+      #   [@handle]              # Just handle
+      #   [Name - @handle]       # Name and handle
+      #   [First Last - @handle] # Full name and handle
       #
       class TaggedComments < Base
         MSG = "Comments need attribution. Use format: # %<keyword>s [@handle]: description"
