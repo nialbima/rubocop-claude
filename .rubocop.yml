@@ -3,10 +3,16 @@
 inherit_gem:
   standard: config/base.yml
 
+inherit_from:
+  - config/default.yml
+
 plugins:
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rspec
+
+require:
+  - ./lib/rubocop-claude
 
 AllCops:
   NewCops: enable
@@ -36,10 +42,36 @@ Layout/LineLength:
 # Metrics
 # =============================================================================
 
+Metrics/AbcSize:
+  Enabled: true
+  Max: 17
+
 Metrics/BlockLength:
+  Enabled: true
+  Max: 25
   Exclude:
     - 'spec/**/*'
     - '*.gemspec'
+
+Metrics/ClassLength:
+  Enabled: true
+  Max: 100
+  CountComments: false
+  CountAsOne: [array, hash, heredoc, method_call]
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 7
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 10
+  CountComments: false
+  CountAsOne: [array, hash, heredoc, method_call]
+
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 8
 
 # =============================================================================
 # Naming
@@ -58,7 +90,7 @@ Naming/PredicatePrefix:
 # =============================================================================
 
 RSpec/ExampleLength:
-  Max: 20
+  Max: 25
 
 RSpec/MultipleExpectations:
   Max: 3

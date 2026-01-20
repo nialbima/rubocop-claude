@@ -60,38 +60,27 @@ module RubocopClaude
 
     def update_standard_yml
       content = File.read(standard_yml_path)
+      return puts "#{relative_path(standard_yml_path)} already includes rubocop-claude" if content.include?('rubocop-claude')
 
-      if content.include?('rubocop-claude')
-        puts "#{relative_path(standard_yml_path)} already includes rubocop-claude"
-        return
-      end
-
-      if content.include?('plugins:')
-        # Add to existing plugins list
-        updated = content.sub(/^plugins:\s*$/, "plugins:\n  - rubocop-claude")
-        updated = content.sub(/^(plugins:)\n/, "\\1\n  - rubocop-claude\n") if updated == content
-      else
-        # Add plugins section
-        updated = content.rstrip + "\n\nplugins:\n  - rubocop-claude\n"
-      end
-
-      File.write(standard_yml_path, updated)
+      File.write(standard_yml_path, add_plugin_to_yaml(content))
       puts "Updated #{relative_path(standard_yml_path)} to include rubocop-claude plugin"
     end
 
+    def add_plugin_to_yaml(content)
+      return content.sub(/^(plugins:)\n/, "\\1\n  - rubocop-claude\n") if content.include?('plugins:')
+
+      content.rstrip + "\n\nplugins:\n  - rubocop-claude\n"
+    end
+
     def print_summary
-      puts
-      puts 'rubocop-claude initialized!'
-      puts
+      puts '', 'rubocop-claude initialized!', ''
       puts 'Files created:'
       puts '  .claude/linting.md          - Main linting instructions'
       puts '  .claude/cops/*.md           - Per-cop fix guidance (loaded on-demand)'
-      puts
-      puts 'Next steps:'
+      puts '', 'Next steps:'
       puts "  1. Add `gem 'rubocop-claude'` to your Gemfile"
       puts '  2. Run `bin/standardrb` to check for issues'
-      puts
-      puts 'When Claude hits a lint error, it reads the relevant cop guide for fix instructions.'
+      puts '', 'When Claude hits a lint error, it reads the relevant cop guide for fix instructions.'
     end
 
     def relative_path(path)

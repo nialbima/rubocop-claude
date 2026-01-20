@@ -5,52 +5,24 @@ module RuboCop
     module Claude
       # Enforces visibility keyword placement style.
       #
-      # Clear visibility makes code easier to understand at a glance.
-      # The modifier style (`private def foo`) makes visibility explicit
-      # for each method. The grouped style (`private` on its own line)
-      # keeps methods together but requires scrolling to see visibility.
+      # The grouped style (`private` on its own line) is the dominant Ruby
+      # convention. The modifier style (`private def foo`) is less common.
       #
-      # @example EnforcedStyle: modifier (default)
-      #   # bad - grouped visibility
-      #   class Foo
-      #     def public_method
-      #     end
+      # @example EnforcedStyle: grouped (default)
+      #   # bad
+      #   private def foo; end
       #
-      #     private
+      #   # good
+      #   private
+      #   def foo; end
       #
-      #     def private_method
-      #     end
-      #   end
+      # @example EnforcedStyle: modifier
+      #   # bad
+      #   private
+      #   def foo; end
       #
-      #   # good - inline visibility modifier
-      #   class Foo
-      #     def public_method
-      #     end
-      #
-      #     private def private_method
-      #     end
-      #   end
-      #
-      # @example EnforcedStyle: grouped
-      #   # bad - mixed visibility modifiers
-      #   class Foo
-      #     def public_method
-      #     end
-      #
-      #     private def private_method
-      #     end
-      #   end
-      #
-      #   # good - grouped visibility
-      #   class Foo
-      #     def public_method
-      #     end
-      #
-      #     private
-      #
-      #     def private_method
-      #     end
-      #   end
+      #   # good
+      #   private def foo; end
       #
       class ExplicitVisibility < Base
         extend AutoCorrector
@@ -58,93 +30,113 @@ module RuboCop
         VISIBILITY_METHODS = %i[private protected public].freeze
 
         MSG_USE_MODIFIER = 'Use explicit visibility. Place `%<visibility>s` before the method definition.'
-        MSG_USE_GROUPED = 'Use grouped visibility. Place `%<visibility>s` on its own line before private methods.'
+        MSG_USE_GROUPED = 'Use grouped visibility. Move method to `%<visibility>s` section.'
 
         def on_send(node)
-          return unless visibility_declaration?(node)
-          return unless node.arguments.empty? # standalone visibility keyword
-
-          # In modifier style, standalone visibility keywords are bad
+          return unless standalone_visibility?(node)
           return unless enforced_style == :modifier
 
-          # Find methods that follow this visibility declaration
-          following_methods = find_following_methods(node)
-          return if following_methods.empty?
+          methods = find_following_methods(node)
+          return if methods.empty?
 
-          visibility = node.method_name
-          add_offense(node, message: format(MSG_USE_MODIFIER, visibility: visibility)) do |corrector|
-            autocorrect_to_modifier(corrector, node, following_methods, visibility)
+          add_offense(node, message: format(MSG_USE_MODIFIER, visibility: node.method_name)) do |corrector|
+            autocorrect_to_modifier(corrector, node, methods)
           end
         end
 
         def on_def(node)
           return unless enforced_style == :grouped
+          return unless inline_visibility?(node.parent)
 
-          # Check if this def has an inline visibility modifier
-          parent = node.parent
-          return unless parent&.send_type?
-          return unless VISIBILITY_METHODS.include?(parent.method_name)
-          return unless parent.arguments.size == 1 # visibility def method_name
-
-          visibility = parent.method_name
-          add_offense(parent, message: format(MSG_USE_GROUPED, visibility: visibility))
+          visibility = node.parent.method_name
+          add_offense(node.parent, message: format(MSG_USE_GROUPED, visibility: visibility)) do |corrector|
+            autocorrect_to_grouped(corrector, node, node.parent, visibility)
+          end
         end
 
         private
 
         def enforced_style
-          cop_config.fetch('EnforcedStyle', 'modifier').to_sym
+          cop_config.fetch('EnforcedStyle', 'grouped').to_sym
         end
 
-        def visibility_declaration?(node)
-          return false unless node.send_type?
+        def standalone_visibility?(node)
+          node.send_type? && VISIBILITY_METHODS.include?(node.method_name) &&
+            node.receiver.nil? && node.arguments.empty?
+        end
 
-          VISIBILITY_METHODS.include?(node.method_name) &&
-            node.receiver.nil?
+        def inline_visibility?(node)
+          node&.send_type? && %i[private protected].include?(node.method_name) &&
+            node.arguments.size == 1
         end
 
         def find_following_methods(visibility_node)
-          return [] unless visibility_node.parent
+          siblings = visibility_node.parent&.children || []
+          idx = siblings.index(visibility_node)
+          return [] unless idx
 
+          siblings[(idx + 1)..].take_while { |s| !standalone_visibility?(s) }.select(&:def_type?)
+        end
+
+        def autocorrect_to_modifier(corrector, visibility_node, methods)
+          corrector.remove(range_with_newlines(visibility_node))
+          methods.each { |m| corrector.insert_before(m, "#{visibility_node.method_name} ") }
+        end
+
+        def autocorrect_to_grouped(corrector, def_node, send_node, visibility)
+          class_node = def_node.each_ancestor(:class, :module).first
+          return unless class_node
+
+          insert_method_in_section(corrector, class_node, def_node, visibility)
+          corrector.remove(range_with_newlines(send_node))
+        end
+
+        def insert_method_in_section(corrector, class_node, def_node, visibility)
+          section = find_visibility_section(class_node, visibility)
+          ind = indent(def_node)
+
+          if section
+            pos = last_method_in_section(section)&.source_range || section.source_range
+            corrector.insert_after(pos, "\n\n#{ind}#{def_node.source}")
+          else
+            corrector.insert_before(class_node.loc.end.begin,
+              "\n\n#{ind}#{visibility}\n\n#{ind}#{def_node.source}\n")
+          end
+        end
+
+        def find_visibility_section(class_node, visibility)
+          body = class_node.body
+          return unless body
+
+          body.each_child_node(:send).find { |n| n.method_name == visibility && n.arguments.empty? }
+        end
+
+        def last_method_in_section(visibility_node)
           siblings = visibility_node.parent.children
-          visibility_index = siblings.index(visibility_node)
-          return [] unless visibility_index
-
-          methods = []
-          siblings[(visibility_index + 1)..].each do |sibling|
-            break if visibility_declaration?(sibling) && sibling.arguments.empty?
-
-            methods << sibling if sibling.def_type?
-          end
-          methods
+          idx = siblings.index(visibility_node)
+          siblings[(idx + 1)..].take_while { |s| !standalone_visibility?(s) }
+            .reverse.find(&:def_type?)
         end
 
-        def autocorrect_to_modifier(corrector, visibility_node, methods, visibility)
-          # Remove the standalone visibility line
-          corrector.remove(range_with_surrounding_newlines(visibility_node))
-
-          # Add visibility modifier to each following method
-          methods.each do |method_node|
-            corrector.insert_before(method_node, "#{visibility} ")
-          end
+        def indent(node)
+          node.source_range.source_line[/\A\s*/]
         end
 
-        def range_with_surrounding_newlines(node)
-          range = node.source_range
+        def range_with_newlines(node)
           source = processed_source.buffer.source
-
-          # Extend to include trailing newline if present
-          end_pos = range.end_pos
-          end_pos += 1 if source[end_pos] == "\n"
-
-          # Extend to include leading whitespace on the line
-          begin_pos = range.begin_pos
-          begin_pos -= 1 while begin_pos > 0 && source[begin_pos - 1] =~ /[ \t]/
-
-          # Include the newline before if this is on its own line
-          begin_pos -= 1 if begin_pos > 0 && source[begin_pos - 1] == "\n"
-
+          begin_pos = adjust_begin_pos(node.source_range.begin_pos, source)
+          end_pos = adjust_end_pos(node.source_range.end_pos, source)
           Parser::Source::Range.new(processed_source.buffer, begin_pos, end_pos)
+        end
+
+        def adjust_begin_pos(pos, source)
+          pos -= 1 while pos.positive? && source[pos - 1] =~ /[ \t]/
+          pos -= 1 if pos.positive? && source[pos - 1] == "\n"
+          pos
+        end
+
+        def adjust_end_pos(pos, source)
+          (source[pos] == "\n") ? pos + 1 : pos
         end
       end
     end

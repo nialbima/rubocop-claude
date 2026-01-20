@@ -57,6 +57,12 @@ module RuboCop
         # Comments that indicate removed/deprecated code being preserved
         DEAD_CODE_COMMENT_PATTERN = /\A#\s*(?:removed|deprecated|legacy|backwards?\s*compat(?:ibility)?|for\s+compat(?:ibility)?|compat(?:ibility)?\s+shim):/i
 
+        # Patterns for detecting backwards-compatibility comments near constant assignments
+        COMPAT_KEYWORD_PATTERN = /\b(?:backwards?\s*)?compat(?:ibility)?\b/i
+        LEGACY_REFERENCE_PATTERN = /\bfor\s+(?:legacy|old|previous)\b/i
+        DEPRECATED_PATTERN = /\bdeprecated\b/i
+        ALIAS_PATTERN = /\balias\s+for\b/i
+
         # Assignment to underscore-prefixed variables (not just _ which is idiomatic for unused block args)
         UNDERSCORE_ASSIGNMENT_MSG = 'Assignment to underscore-prefixed variable'
 
@@ -115,10 +121,9 @@ module RuboCop
         end
 
         def compat_comment?(text)
-          text.match?(/\b(?:backwards?\s*)?compat(?:ibility)?\b/i) ||
-            text.match?(/\bfor\s+(?:legacy|old|previous)\b/i) ||
-            text.match?(/\bdeprecated\b/i) ||
-            text.match?(/\balias\s+for\b/i)
+          [COMPAT_KEYWORD_PATTERN, LEGACY_REFERENCE_PATTERN, DEPRECATED_PATTERN, ALIAS_PATTERN].any? do |pattern|
+            text.match?(pattern)
+          end
         end
 
         def check_underscore_assignments?

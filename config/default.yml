@@ -80,6 +80,9 @@ Claude/NoFancyUnicode:
   AllowedUnicode: []
   AllowInStrings: false
   AllowInComments: false
+  Exclude:
+    - '**/no_fancy_unicode.rb'
+    - '**/no_fancy_unicode_spec.rb'
 
 Claude/TaggedComments:
   Enabled: true
@@ -111,8 +114,8 @@ Claude/NoOverlyDefensiveCode:
 
 Claude/ExplicitVisibility:
   Enabled: true
-  Description: "Use explicit visibility. Place `private` before each private method."
-  EnforcedStyle: modifier
+  Description: "Use explicit visibility. Group private methods under `private` keyword."
+  EnforcedStyle: grouped
 
 Claude/MysteryRegex:
   Enabled: true

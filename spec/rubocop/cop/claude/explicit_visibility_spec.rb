@@ -101,7 +101,67 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       expect_offense(<<~RUBY)
         class Foo
           private def secret_method
-          ^^^^^^^^^^^^^^^^^^^^^^^^^ Use grouped visibility. Place `private` on its own line before private methods.
+          ^^^^^^^^^^^^^^^^^^^^^^^^^ Use grouped visibility. Move method to `private` section.
+          end
+        end
+      RUBY
+    end
+
+    it 'autocorrects by moving to new private section' do
+      expect_offense(<<~RUBY)
+        class Foo
+          def public_method
+          end
+
+          private def secret_method
+          ^^^^^^^^^^^^^^^^^^^^^^^^^ Use grouped visibility. Move method to `private` section.
+          end
+        end
+      RUBY
+
+      # NOTE [@claude]: Extra blank line is a minor whitespace artifact
+      expect_correction(<<~RUBY)
+        class Foo
+          def public_method
+          end
+
+
+          private
+
+          def secret_method
+          end
+        end
+      RUBY
+    end
+
+    it 'autocorrects by adding to existing private section' do
+      expect_offense(<<~RUBY)
+        class Foo
+          def public_method
+          end
+
+          private
+
+          def existing_private
+          end
+
+          private def another_private
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Use grouped visibility. Move method to `private` section.
+          end
+        end
+      RUBY
+
+      expect_correction(<<~RUBY)
+        class Foo
+          def public_method
+          end
+
+          private
+
+          def existing_private
+          end
+
+          def another_private
           end
         end
       RUBY

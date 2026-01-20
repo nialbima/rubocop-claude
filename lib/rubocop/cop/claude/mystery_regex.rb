@@ -25,10 +25,7 @@ module RuboCop
               'Complex patterns deserve descriptive names.'
 
         def on_regexp(node)
-          regex_content = extract_regex_content(node)
-          max_length = cop_config.fetch('MaxLength', 25)
-
-          return if regex_content.length <= max_length
+          return if node.content.length <= max_length
           return if inside_constant_assignment?(node)
 
           add_offense(node)
@@ -36,21 +33,11 @@ module RuboCop
 
         private
 
-        def extract_regex_content(node)
-          # Get the regex source without delimiters and flags
-          node.children
-            .select { |child| child.is_a?(RuboCop::AST::RegexpNode) || child.is_a?(RuboCop::AST::StrNode) || child.respond_to?(:value) }
-            .map { |child| child.respond_to?(:value) ? child.value : child.source }
-            .join
-        rescue
-          # Fallback: get source and strip delimiters
-          source = node.source
-          # Remove leading / and trailing /flags
-          source.delete_prefix('/').sub(%r{/[imxo]*\z}, '')
+        def max_length
+          cop_config.fetch('MaxLength', 25)
         end
 
         def inside_constant_assignment?(node)
-          # Check if this regex is being assigned to a constant
           node.each_ancestor(:casgn).any?
         end
       end

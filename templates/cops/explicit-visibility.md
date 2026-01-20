@@ -1,13 +1,25 @@
 # Claude/ExplicitVisibility
 
-**What it catches:** (in modifier mode) Standalone `private`/`protected` keywords instead of inline modifiers.
+**What it catches:** (in grouped mode) Inline `private def foo` instead of grouped `private` sections.
 
-**Why it matters:** `private def foo` makes visibility explicit at the point of definition. You don't have to scroll to see if a method is private.
+**Why it matters:** Grouped visibility is the dominant Ruby convention. All private methods appear under the `private` keyword, making it easy to scan a class and see its public interface at the top.
 
 ## How to Fix
 
 ```ruby
-# BAD - grouped style
+# BAD - modifier style (inline)
+class User
+  def public_method
+  end
+
+  private def secret_method
+  end
+
+  private def another_secret
+  end
+end
+
+# GOOD - grouped style
 class User
   def public_method
   end
@@ -20,25 +32,21 @@ class User
   def another_secret
   end
 end
-
-# GOOD - modifier style
-class User
-  def public_method
-  end
-
-  private def secret_method
-  end
-
-  private def another_secret
-  end
-end
 ```
 
-## Autocorrection
+## Configuration
 
-**This cop autocorrects** - it will move the visibility keyword to each method.
+```yaml
+Claude/ExplicitVisibility:
+  Enabled: true
+  EnforcedStyle: grouped  # default - or 'modifier' for inline style
+```
 
-## Decision Criteria
+## For AI Assistants
 
-- Let the autocorrect handle it
-- If the project uses grouped style consistently, configure `EnforcedStyle: grouped`
+**When adding private methods:**
+1. Place them after the `private` keyword at the bottom of the class
+2. If no `private` section exists, add one before your new method
+3. Don't use `private def` inline style unless the project consistently uses it
+
+**When you see `private def`:** The project may prefer modifier style. Check other files before "fixing" it.
