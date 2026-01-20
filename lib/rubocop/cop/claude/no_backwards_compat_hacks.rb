@@ -9,23 +9,45 @@ module RuboCop
       # cleanly removing code. This creates confusion and maintenance burden.
       # If code is unused, delete it completely.
       #
-      # @example
+      # == Detection Philosophy
+      #
+      # This cop catches *self-documented* compatibility hacks - patterns where
+      # the code includes comments like "for backwards compatibility" or markers
+      # like "# removed:". It won't catch silent compat hacks without comments.
+      #
+      # This is intentional. The goal is teaching, not comprehensive detection.
+      # When the cop fires, it's a teaching moment - the AI reads the guidance
+      # and learns the principle "don't preserve dead code." Over time, this
+      # shapes better habits even for cases we can't detect.
+      #
+      # @example Dead code marker comments (always flagged)
+      #   # bad
+      #   # removed: def old_method; end
+      #   # deprecated: use new_method instead
+      #   # legacy: keeping for backwards compat
+      #   # backwards compatibility: aliased from OldClass
+      #
+      #   # good - just delete the comment entirely
+      #
+      # @example Constant re-exports with compat comments (always flagged)
+      #   # bad
+      #   OldName = NewName  # for backwards compatibility
+      #
+      #   # bad
+      #   # deprecated alias
+      #   LegacyClass = ModernClass
+      #
+      #   # good - delete the alias, update callers
+      #
+      # @example CheckUnderscoreAssignments: true (optional, off by default)
       #   # bad - underscore prefix to silence unused variable warning
       #   _old_method = :deprecated
       #   _unused = previous_value
       #
-      #   # bad - re-exporting for "compatibility"
-      #   OldName = NewName  # for backwards compatibility
+      #   # good - delete the line entirely if not needed
       #
-      #   # bad - legacy comments indicating dead code
-      #   # removed: def old_method; end
-      #   # deprecated: use new_method instead
-      #   # legacy: keeping for backwards compat
-      #
-      #   # good - just delete the old code
-      #   def new_method
-      #     # implementation
-      #   end
+      #   # ok - single underscore in blocks is idiomatic Ruby
+      #   hash.each { |_, v| puts v }
       #
       class NoBackwardsCompatHacks < Base
         MSG_UNDERSCORE = "Delete dead code. Don't use underscore prefix to preserve unused values."
@@ -42,16 +64,16 @@ module RuboCop
           check_dead_code_comments
         end
 
-        # Detect _unused = value patterns
+        # Detect _unused = value patterns (optional, off by default)
         def on_lvasgn(node)
+          return unless check_underscore_assignments?
+
           var_name = node.children[0].to_s
           return unless var_name.start_with?('_') && var_name.length > 1
 
           # Allow in block parameters context (common Ruby idiom)
           return if in_block_arguments?(node)
 
-          # Check if it's a simple assignment that looks like dead code preservation
-          # e.g., _old = something, _unused = previous_value
           add_offense(node, message: MSG_UNDERSCORE)
         end
 
@@ -97,6 +119,10 @@ module RuboCop
             text.match?(/\bfor\s+(?:legacy|old|previous)\b/i) ||
             text.match?(/\bdeprecated\b/i) ||
             text.match?(/\balias\s+for\b/i)
+        end
+
+        def check_underscore_assignments?
+          cop_config.fetch('CheckUnderscoreAssignments', false)
         end
       end
     end

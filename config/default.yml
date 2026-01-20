@@ -54,6 +54,12 @@ Layout/MultilineMethodCallIndentation:
   Enabled: true
   EnforcedStyle: indented
 
+# Flag defensive .try calls and excessive && nil checks
+Style/SafeNavigation:
+  Enabled: true
+  AllowedMethods: []  # Don't allow try/try! - use &. or trust the code
+  MaxChainLength: 1   # Consistent with NoOverlyDefensiveCode
+
 # Flag overly complex methods
 Metrics/CyclomaticComplexity:
   Enabled: true
@@ -95,11 +101,13 @@ Claude/NoCommentedCode:
 Claude/NoBackwardsCompatHacks:
   Enabled: true
   Description: "Delete dead code. Don't preserve it for backwards compatibility."
+  CheckUnderscoreAssignments: false
 
 Claude/NoOverlyDefensiveCode:
   Enabled: true
   Description: "Trust internal code. Remove unnecessary defensive patterns."
-  MaxSafeNavigationChain: 2
+  MaxSafeNavigationChain: 1
+  AddSafeNavigator: false
 
 Claude/ExplicitVisibility:
   Enabled: true

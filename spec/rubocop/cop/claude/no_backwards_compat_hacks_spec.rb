@@ -11,7 +11,25 @@ RSpec.describe RuboCop::Cop::Claude::NoBackwardsCompatHacks, :config do
     }
   end
 
-  context 'with underscore-prefixed variables' do
+  context 'with underscore-prefixed variables (CheckUnderscoreAssignments: false, default)' do
+    it 'does not register offense by default' do
+      expect_no_offenses(<<~RUBY)
+        _old_value = previous_calculation
+        _foo = bar
+      RUBY
+    end
+  end
+
+  context 'with underscore-prefixed variables (CheckUnderscoreAssignments: true)' do
+    let(:cop_config) do
+      {
+        'Claude/NoBackwardsCompatHacks' => {
+          'Enabled' => true,
+          'CheckUnderscoreAssignments' => true
+        }
+      }
+    end
+
     it 'registers an offense for _unused assignments' do
       expect_offense(<<~RUBY)
         _old_value = previous_calculation

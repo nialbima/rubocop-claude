@@ -9,21 +9,29 @@ module RuboCop
       # "just in case." This obscures bugs, makes code harder to read,
       # and indicates distrust of the codebase.
       #
-      # @example Swallowing errors
-      #   # bad
+      # @example Error swallowing - block form (flagged)
+      #   # bad - swallows all errors
       #   begin
       #     do_something
       #   rescue => e
       #     nil
       #   end
       #
-      #   # bad
-      #   do_something rescue nil
+      #   # bad - empty rescue body
+      #   begin
+      #     do_something
+      #   rescue
+      #   end
       #
-      #   # good - let errors propagate or handle meaningfully
+      # @example Error swallowing - inline form (flagged)
+      #   # bad
+      #   result = do_something rescue nil
+      #
+      # @example Error swallowing - allowed patterns
+      #   # good - let errors propagate
       #   do_something
       #
-      #   # good - if you must rescue, do something useful
+      #   # good - handle meaningfully
       #   begin
       #     do_something
       #   rescue SpecificError => e
@@ -31,21 +39,58 @@ module RuboCop
       #     fallback_value
       #   end
       #
-      # @example Excessive safe navigation
-      #   # bad - 3+ chained &. on internal objects
-      #   user&.profile&.settings&.notifications
+      #   # good - specific exceptions with empty body (intentional ignore)
+      #   begin
+      #     require 'optional_gem'
+      #   rescue LoadError
+      #     # Optional dependency not available
+      #   end
       #
-      #   # good - trust your data model or fail fast
+      # @example Excessive safe navigation (flagged when > MaxSafeNavigationChain)
+      #   # bad - 2+ chained &. violates design principles
+      #   user&.profile&.settings
+      #
+      # @example Safe navigation - allowed patterns
+      #   # good - single &. at system boundary
+      #   user&.name
+      #
+      #   # good - trust your data model
       #   user.profile.settings.notifications
       #
-      #   # good - if nil is expected, handle it explicitly
+      #   # good - explicit nil check
       #   return unless user
       #   user.profile.settings.notifications
       #
+      # @example MaxSafeNavigationChain: 2 (more permissive)
+      #   # ok with MaxSafeNavigationChain: 2
+      #   user&.profile&.settings
+      #
+      # @example Pre-safe-navigation nil checks (always flagged)
+      #   # bad - defensive nil check before method call
+      #   a && a.foo
+      #   user && user.name
+      #
+      # @example AddSafeNavigator: false (default - fail fast)
+      #   # autocorrects to direct call (trust the code)
+      #   a && a.foo  # => a.foo
+      #
+      # @example AddSafeNavigator: true (add safe navigation)
+      #   # autocorrects to safe navigation
+      #   a && a.foo  # => a&.foo
+      #
       class NoOverlyDefensiveCode < Base
+        extend AutoCorrector
         MSG_SWALLOW = "Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`."
         MSG_CHAIN = 'Trust internal code. Excessive safe navigation (%<count>d chained `&.`) suggests ' \
                     'uncertain data model. Use explicit nil checks or fix the source.'
+        MSG_NIL_CHECK = 'Trust internal code. `%<code>s` is a defensive nil check. ' \
+                        'Use `%<replacement>s` instead.'
+        MSG_NIL_TERNARY = 'Trust internal code. `%<code>s` is a verbose nil check. ' \
+                          'Use `%<replacement>s` instead.'
+        MSG_INVERSE_TERNARY = 'Trust internal code. `%<code>s` is verbose. ' \
+                              'Use `%<replacement>s` instead.'
+        MSG_PRESENT_CHECK = 'Trust internal code. `%<code>s` is a defensive presence check. ' \
+                            'Use `%<replacement>s` instead.'
 
         def on_resbody(node)
           # Check for rescue that just returns nil
@@ -54,13 +99,76 @@ module RuboCop
           add_offense(node, message: MSG_SWALLOW)
         end
 
+        # Detect `a && a.foo` and `a.present? && a.foo` patterns
+        def on_and(node)
+          left, right = *node
+
+          # Right side must be a method call
+          return unless right.send_type?
+
+          # Pattern 1: `a.present? && a.foo` → `a.foo`
+          if presence_check?(left)
+            receiver = left.receiver
+            if same_variable?(receiver, right.receiver)
+              replacement = build_replacement(right)
+              message = format(MSG_PRESENT_CHECK, code: node.source, replacement: replacement)
+
+              add_offense(node, message: message) do |corrector|
+                corrector.replace(node, replacement)
+              end
+              return
+            end
+          end
+
+          # Pattern 2: `a && a.foo` → `a.foo`
+          return unless defensive_nil_check?(left, right)
+
+          replacement = build_replacement(right)
+          message = format(MSG_NIL_CHECK, code: node.source, replacement: replacement)
+
+          add_offense(node, message: message) do |corrector|
+            corrector.replace(node, replacement)
+          end
+        end
+
+        # Detect `foo.nil? ? default : foo` and `foo ? foo : default` patterns
+        def on_if(node)
+          return unless node.ternary?
+
+          condition, if_branch, else_branch = *node
+
+          # Pattern 1: `foo.nil? ? default : foo` → `foo || default`
+          if nil_check_condition?(condition)
+            receiver = condition.receiver
+            if same_variable?(receiver, else_branch)
+              replacement = "#{receiver.source} || #{if_branch.source}"
+              message = format(MSG_NIL_TERNARY, code: node.source, replacement: replacement)
+
+              add_offense(node, message: message) do |corrector|
+                corrector.replace(node, replacement)
+              end
+              return
+            end
+          end
+
+          # Pattern 2: `foo ? foo : default` → `foo || default`
+          if same_variable?(condition, if_branch)
+            replacement = "#{condition.source} || #{else_branch.source}"
+            message = format(MSG_INVERSE_TERNARY, code: node.source, replacement: replacement)
+
+            add_offense(node, message: message) do |corrector|
+              corrector.replace(node, replacement)
+            end
+          end
+        end
+
         def on_csend(node)
           # Only report on outermost node of a chain to avoid duplicate offenses
           return if node.parent&.csend_type?
 
           # Count chained safe navigation operators
           chain_length = count_safe_nav_chain(node)
-          max_chain = cop_config.fetch('MaxSafeNavigationChain', 2)
+          max_chain = cop_config.fetch('MaxSafeNavigationChain', 1)
 
           return unless chain_length > max_chain
 
@@ -131,6 +239,58 @@ module RuboCop
           end
 
           count
+        end
+
+        # Check if `left` is the same as the receiver of `right`
+        # e.g., `a && a.foo` where left=a, right=a.foo
+        def defensive_nil_check?(left, right)
+          receiver = right.receiver
+          return false unless receiver
+
+          same_variable?(left, receiver)
+        end
+
+        def same_variable?(node1, node2)
+          return false unless node1 && node2
+
+          node1.source == node2.source
+        end
+
+        # Check if node is a `foo.nil?` or `foo.blank?` call
+        def nil_check_condition?(node)
+          return false unless node.send_type?
+
+          method_name = node.method_name
+          %i[nil? blank?].include?(method_name)
+        end
+
+        # Check if node is a `foo.present?` call
+        def presence_check?(node)
+          return false unless node.send_type?
+
+          node.method_name == :present?
+        end
+
+        def build_replacement(send_node)
+          if add_safe_navigator?
+            # Convert `a.foo` to `a&.foo`
+            receiver = send_node.receiver.source
+            method = send_node.method_name
+            args = send_node.arguments.map(&:source).join(', ')
+
+            if send_node.arguments.empty?
+              "#{receiver}&.#{method}"
+            else
+              "#{receiver}&.#{method}(#{args})"
+            end
+          else
+            # Just use the direct call (fail fast)
+            send_node.source
+          end
+        end
+
+        def add_safe_navigator?
+          cop_config.fetch('AddSafeNavigator', false)
         end
       end
     end
