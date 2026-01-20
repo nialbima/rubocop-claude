@@ -139,9 +139,11 @@ module RuboCop
         def clean_text(text, char)
           text
             .gsub(char, "")
+            .gsub(/_+\z/, "")          # Remove trailing underscores at end
             .gsub(/_+(['"])/, '\1')    # Remove trailing underscores before closing quote
             .gsub(/\s{2,}/, " ")       # Collapse multiple spaces to single space
             .gsub(/\s+(['"])/, '\1')   # Remove trailing space before closing quote
+            .gsub(/\s+\z/, "")         # Remove trailing whitespace at end
         end
 
         def find_fancy_unicode(text)

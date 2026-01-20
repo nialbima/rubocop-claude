@@ -14,8 +14,8 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     }
   end
 
-  context "with emoji" do
-    it "registers an offense for emoji in string and removes trailing space" do
+  context "with emoji in strings" do
+    it "registers an offense and removes trailing space" do
       expect_offense(<<~'RUBY')
         puts "Success! 🎉"
              ^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
@@ -26,15 +26,26 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       RUBY
     end
 
-    it "registers an offense for emoji in comment" do
+    it "registers an offense for emoji in interpolated string" do
+      expect_offense(<<~'RUBY')
+        puts "Hello #{name} 🎉"
+                            ^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+      RUBY
+    end
+  end
+
+  context "with emoji in comments" do
+    it "registers an offense" do
       expect_offense(<<~'RUBY')
         # TODO: Fix bug 🐛
         ^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `🐛` (U+1F41B). Use standard ASCII or add to AllowedUnicode.
         def fix; end
       RUBY
     end
+  end
 
-    it "registers an offense for emoji in symbol and removes trailing underscore" do
+  context "with emoji in symbols" do
+    it "registers an offense and removes trailing underscore" do
       expect_offense(<<~'RUBY')
         status = :done_✅
                  ^^^^^^^ Avoid fancy Unicode `✅` (U+2705). Use standard ASCII or add to AllowedUnicode.
@@ -46,35 +57,62 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     end
   end
 
-  context "with fancy typography" do
-    it "registers an offense for curly quotes" do
-      expect_offense(<<~'RUBY')
-        puts "Hello world"
-             ^^^^^^^^^^^^^^ Avoid fancy Unicode `"` (U+201C). Use standard ASCII or add to AllowedUnicode.
+  context "with fancy typography in strings" do
+    it "registers an offense for curly quotes inside string" do
+      expect_offense(<<~RUBY)
+        puts "He said \u201Chello\u201D to me"
+             ^^^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u201C` (U+201C). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
 
-    it "registers an offense for em-dash" do
-      expect_offense(<<~'RUBY')
-        # Section 3 — Details
-        ^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `—` (U+2014). Use standard ASCII or add to AllowedUnicode.
-        def details; end
+    it "registers an offense for em-dash in string" do
+      expect_offense(<<~RUBY)
+        title = "Chapter 3 \u2014 Details"
+                ^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u2014` (U+2014). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end
 
-  context "with mathematical symbols" do
+  context "with fancy typography in comments" do
+    it "registers an offense for em-dash" do
+      expect_offense(<<~RUBY)
+        # Section 3 \u2014 Details
+        ^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u2014` (U+2014). Use standard ASCII or add to AllowedUnicode.
+        def details; end
+      RUBY
+    end
+
+    it "registers an offense for curly quotes" do
+      expect_offense(<<~RUBY)
+        # He said \u201Chello\u201D
+        ^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u201C` (U+201C). Use standard ASCII or add to AllowedUnicode.
+        def greet; end
+      RUBY
+    end
+  end
+
+  context "with mathematical symbols in strings" do
     it "registers an offense for not-equal symbol" do
-      expect_offense(<<~'RUBY')
-        return false if x ≠ y
-                          ^ Avoid fancy Unicode `≠` (U+2260). Use standard ASCII or add to AllowedUnicode.
+      expect_offense(<<~RUBY)
+        puts "x \u2260 y means not equal"
+             ^^^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u2260` (U+2260). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
 
     it "registers an offense for less-than-or-equal symbol" do
+      expect_offense(<<~RUBY)
+        doc = "Use \u2264 for less than or equal"
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `\u2264` (U+2264). Use standard ASCII or add to AllowedUnicode.
+      RUBY
+    end
+  end
+
+  context "with mathematical symbols in comments" do
+    it "registers an offense for arrow" do
       expect_offense(<<~'RUBY')
-        valid = count ≤ max
-                      ^ Avoid fancy Unicode `≤` (U+2264). Use standard ASCII or add to AllowedUnicode.
+        # Click → to continue
+        ^^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `→` (U+2192). Use standard ASCII or add to AllowedUnicode.
+        def continue; end
       RUBY
     end
   end
@@ -110,6 +148,12 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
         greeting = "مرحبا"
       RUBY
     end
+
+    it "allows Korean characters" do
+      expect_no_offenses(<<~'RUBY')
+        hello = "안녕하세요"
+      RUBY
+    end
   end
 
   context "with standard ASCII" do
@@ -124,10 +168,13 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       RUBY
     end
 
-    it "allows standard quotes" do
+    it "allows standard quotes and operators" do
       expect_no_offenses(<<~'RUBY')
         puts "double quotes"
         puts 'single quotes'
+        x != y
+        a <= b
+        c >= d
       RUBY
     end
   end
@@ -137,7 +184,8 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       {
         "Claude/NoFancyUnicode" => {
           "Enabled" => true,
-          "AllowInStrings" => true
+          "AllowInStrings" => true,
+          "AllowInComments" => false
         }
       }
     end
@@ -152,7 +200,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     it "still catches fancy unicode in comments" do
       expect_offense(<<~'RUBY')
         # Celebration 🎉
-        ^^^^^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+        ^^^^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
         def party; end
       RUBY
     end
@@ -160,7 +208,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     it "still catches fancy unicode in symbols" do
       expect_offense(<<~'RUBY')
         status = :done_✅
-                 ^^^^^^^^ Avoid fancy Unicode `✅` (U+2705). Use standard ASCII or add to AllowedUnicode.
+                 ^^^^^^^ Avoid fancy Unicode `✅` (U+2705). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end
@@ -170,6 +218,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       {
         "Claude/NoFancyUnicode" => {
           "Enabled" => true,
+          "AllowInStrings" => false,
           "AllowInComments" => true
         }
       }
@@ -186,7 +235,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
     it "still catches fancy unicode in strings" do
       expect_offense(<<~'RUBY')
         puts "Success! 🎉"
-             ^^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+             ^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end
@@ -201,7 +250,7 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       }
     end
 
-    it "allows configured unicode characters" do
+    it "allows configured unicode characters in comments" do
       expect_no_offenses(<<~'RUBY')
         # Click → to continue
         # Press ← to go back
@@ -210,10 +259,17 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       RUBY
     end
 
+    it "allows configured unicode characters in strings" do
+      expect_no_offenses(<<~'RUBY')
+        puts "Click → to continue"
+        list = "• First\n• Second"
+      RUBY
+    end
+
     it "still catches non-allowed unicode" do
       expect_offense(<<~'RUBY')
         puts "Success! 🎉"
-             ^^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+             ^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
       RUBY
     end
   end
