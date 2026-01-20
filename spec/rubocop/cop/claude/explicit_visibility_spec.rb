@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
   let(:cop_config) do
     {
-      "Claude/ExplicitVisibility" => {
-        "Enabled" => true,
-        "EnforcedStyle" => "modifier"
+      'Claude/ExplicitVisibility' => {
+        'Enabled' => true,
+        'EnforcedStyle' => 'modifier'
       }
     }
   end
 
-  context "with EnforcedStyle: modifier" do
-    it "registers an offense for standalone private" do
+  context 'with EnforcedStyle: modifier' do
+    it 'registers an offense for standalone private' do
       expect_offense(<<~RUBY)
         class Foo
           def public_method
@@ -28,7 +28,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       RUBY
     end
 
-    it "registers an offense for standalone protected" do
+    it 'registers an offense for standalone protected' do
       expect_offense(<<~RUBY)
         class Foo
           protected
@@ -40,7 +40,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       RUBY
     end
 
-    it "autocorrects to modifier style" do
+    it 'autocorrects to modifier style' do
       expect_offense(<<~RUBY)
         class Foo
           private
@@ -65,7 +65,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       RUBY
     end
 
-    it "does not register offense for modifier style" do
+    it 'does not register offense for modifier style' do
       expect_no_offenses(<<~RUBY)
         class Foo
           def public_method
@@ -77,7 +77,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       RUBY
     end
 
-    it "does not register offense for private with argument (attr_reader etc)" do
+    it 'does not register offense for private with argument (attr_reader etc)' do
       expect_no_offenses(<<~RUBY)
         class Foo
           private :some_method
@@ -87,17 +87,17 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
     end
   end
 
-  context "with EnforcedStyle: grouped" do
+  context 'with EnforcedStyle: grouped' do
     let(:cop_config) do
       {
-        "Claude/ExplicitVisibility" => {
-          "Enabled" => true,
-          "EnforcedStyle" => "grouped"
+        'Claude/ExplicitVisibility' => {
+          'Enabled' => true,
+          'EnforcedStyle' => 'grouped'
         }
       }
     end
 
-    it "registers an offense for modifier style" do
+    it 'registers an offense for modifier style' do
       expect_offense(<<~RUBY)
         class Foo
           private def secret_method
@@ -107,7 +107,7 @@ RSpec.describe RuboCop::Cop::Claude::ExplicitVisibility, :config do
       RUBY
     end
 
-    it "does not register offense for grouped style" do
+    it 'does not register offense for grouped style' do
       expect_no_offenses(<<~RUBY)
         class Foo
           def public_method

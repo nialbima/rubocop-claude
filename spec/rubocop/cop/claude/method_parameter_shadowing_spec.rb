@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
   let(:cop_config) do
     {
-      "Claude/MethodParameterShadowing" => {
-        "Enabled" => true
+      'Claude/MethodParameterShadowing' => {
+        'Enabled' => true
       }
     }
   end
 
-  context "when parameter shadows instance variable" do
-    it "registers an offense for shadowing @name" do
+  context 'when parameter shadows instance variable' do
+    it 'registers an offense for shadowing @name' do
       expect_offense(<<~RUBY)
         class User
           def initialize(name)
@@ -27,7 +27,7 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
       RUBY
     end
 
-    it "registers an offense for multiple shadowing parameters" do
+    it 'registers an offense for multiple shadowing parameters' do
       expect_offense(<<~RUBY)
         class User
           def initialize(name, email)
@@ -45,7 +45,7 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
       RUBY
     end
 
-    it "registers an offense for keyword arguments" do
+    it 'registers an offense for keyword arguments' do
       expect_offense(<<~RUBY)
         class User
           def initialize(name:)
@@ -60,7 +60,7 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
       RUBY
     end
 
-    it "registers an offense for optional arguments" do
+    it 'registers an offense for optional arguments' do
       expect_offense(<<~RUBY)
         class User
           attr_accessor :name
@@ -74,8 +74,8 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
     end
   end
 
-  context "when initialize is exempt" do
-    it "does not register offense for initialize" do
+  context 'when initialize is exempt' do
+    it 'does not register offense for initialize' do
       expect_no_offenses(<<~RUBY)
         class User
           def initialize(name)
@@ -86,8 +86,8 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
     end
   end
 
-  context "when parameter does not shadow" do
-    it "does not register offense for different names" do
+  context 'when parameter does not shadow' do
+    it 'does not register offense for different names' do
       expect_no_offenses(<<~RUBY)
         class User
           def initialize(name)
@@ -101,7 +101,7 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
       RUBY
     end
 
-    it "does not register offense when no ivars exist" do
+    it 'does not register offense when no ivars exist' do
       expect_no_offenses(<<~RUBY)
         class User
           def update(name)
@@ -112,8 +112,8 @@ RSpec.describe RuboCop::Cop::Claude::MethodParameterShadowing, :config do
     end
   end
 
-  context "in module" do
-    it "registers an offense for shadowing in module" do
+  context 'in module' do
+    it 'registers an offense for shadowing in module' do
       expect_offense(<<~RUBY)
         module Updateable
           def setup(name)

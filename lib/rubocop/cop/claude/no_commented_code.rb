@@ -25,7 +25,7 @@ module RuboCop
       #   end
       #
       class NoCommentedCode < Base
-        MSG = "Delete commented-out code instead of leaving it. Version control preserves history."
+        MSG = 'Delete commented-out code instead of leaving it. Version control preserves history.'
 
         # Patterns that strongly suggest commented-out Ruby code
         CODE_PATTERNS = [
@@ -41,7 +41,7 @@ module RuboCop
           /\A\s*[a-z_]\w*[!(?)]\s*$/,
           /\A\s*[a-z_]\w+\s*$/,
           # Assignments
-          /\A\s*(?:@{1,2}|\$)?\w+\s*[+\-*\/]?=\s*.+/,
+          %r{\A\s*(?:@{1,2}|\$)?\w+\s*[+\-*/]?=\s*.+},
           # Return statements
           /\A\s*return\b/,
           # Raise statements
@@ -71,7 +71,7 @@ module RuboCop
           # URLs
           %r{\A\s*https?://},
           # File paths as documentation
-          %r{\A\s*(?:See|see|cf\.?|ref\.?)\s+},
+          /\A\s*(?:See|see|cf\.?|ref\.?)\s+/,
           # Rubocop directives
           /\A\s*rubocop:/,
           # Frozen string literal
@@ -85,10 +85,10 @@ module RuboCop
         ].freeze
 
         # YARD tags that start example blocks (code follows on subsequent indented lines)
-        YARD_EXAMPLE_START = /\A#\s*@example/.freeze
+        YARD_EXAMPLE_START = /\A#\s*@example/
 
         def on_new_investigation
-          min_lines = cop_config.fetch("MinLines", 2)
+          min_lines = cop_config.fetch('MinLines', 2)
           consecutive_code_comments = []
           in_yard_example = false
 
@@ -110,11 +110,10 @@ module RuboCop
             # Inside YARD example: indented lines are example code, skip them
             # Exit when we hit a non-indented line or another YARD tag
             if in_yard_example
-              if yard_example_content?(raw_text)
-                next
-              else
-                in_yard_example = false
-              end
+              next if yard_example_content?(raw_text)
+
+              in_yard_example = false
+
             end
 
             if looks_like_code?(content)
@@ -152,7 +151,7 @@ module RuboCop
 
         def extract_content(comment)
           # Remove the leading # and any leading whitespace
-          comment.text.sub(/\A#\s?/, "")
+          comment.text.sub(/\A#\s?/, '')
         end
 
         def looks_like_code?(content)

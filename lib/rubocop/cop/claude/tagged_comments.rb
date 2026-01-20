@@ -49,16 +49,13 @@ module RuboCop
       #   [First Last - @handle] # Full name and handle
       #
       class TaggedComments < Base
-        MSG = "Comments need attribution. Use format: # %<keyword>s [@handle]: description"
+        MSG = 'Comments need attribution. Use format: # %<keyword>s [@handle]: description'
 
-        # Matches valid attribution: [@handle] or [Name - @handle]
-        ATTRIBUTION_PATTERN = /\[(?:[\w\s]+-\s*)?@[\w-]+\]/
+        ATTRIBUTION_PATTERN = /\[(?:[\w\s]+-\s*)?@[\w-]+\]/ # Matches valid attribution: [@handle] or [Name - @handle]
 
         def on_new_investigation
-          keywords = cop_config.fetch("Keywords", %w[TODO FIXME NOTE HACK OPTIMIZE REVIEW])
-          # Build regex pattern: matches keyword followed by optional colon, then content
-          # Does NOT match if there's a [@handle] pattern immediately
-          pattern_str = "\\A#\\s*(#{keywords.join("|")}):?\\s+(?!\\[[@\\w])"
+          keywords = cop_config.fetch('Keywords', %w[TODO FIXME NOTE HACK OPTIMIZE REVIEW])
+          pattern_str = "\\A#\\s*(#{keywords.join('|')}):?\\s+(?!\\[[@\\w])"
           @keyword_regex = Regexp.new(pattern_str, Regexp::IGNORECASE)
 
           processed_source.comments.each do |comment|

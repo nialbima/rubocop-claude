@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
   let(:cop_config) do
     {
-      "Claude/NoCommentedCode" => {
-        "Enabled" => true,
-        "MinLines" => 2
+      'Claude/NoCommentedCode' => {
+        'Enabled' => true,
+        'MinLines' => 2
       }
     }
   end
 
-  context "with multi-line commented code" do
-    it "registers an offense for commented method definition" do
+  context 'with multi-line commented code' do
+    it 'registers an offense for commented method definition' do
       expect_offense(<<~RUBY)
         # def old_method
         ^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
@@ -23,7 +23,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "registers an offense for commented method calls" do
+    it 'registers an offense for commented method calls' do
       expect_offense(<<~RUBY)
         # user.update!(name: "test")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
@@ -32,7 +32,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "registers an offense for commented assignments" do
+    it 'registers an offense for commented assignments' do
       expect_offense(<<~RUBY)
         # @name = params[:name]
         ^^^^^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
@@ -42,8 +42,8 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
     end
   end
 
-  context "with single-line commented code and MinLines: 2" do
-    it "does not register an offense for single line" do
+  context 'with single-line commented code and MinLines: 2' do
+    it 'does not register an offense for single line' do
       expect_no_offenses(<<~RUBY)
         # user.update!(name: "test")
         def foo; end
@@ -51,17 +51,17 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
     end
   end
 
-  context "with MinLines: 1" do
+  context 'with MinLines: 1' do
     let(:cop_config) do
       {
-        "Claude/NoCommentedCode" => {
-          "Enabled" => true,
-          "MinLines" => 1
+        'Claude/NoCommentedCode' => {
+          'Enabled' => true,
+          'MinLines' => 1
         }
       }
     end
 
-    it "registers an offense for single line of commented code" do
+    it 'registers an offense for single line of commented code' do
       expect_offense(<<~RUBY)
         # user.update!(name: "test")
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Delete commented-out code instead of leaving it. Version control preserves history.
@@ -70,8 +70,8 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
     end
   end
 
-  context "with regular comments" do
-    it "does not register an offense for TODO comments" do
+  context 'with regular comments' do
+    it 'does not register an offense for TODO comments' do
       expect_no_offenses(<<~RUBY)
         # TODO: Refactor this method
         # FIXME: Handle edge case
@@ -79,7 +79,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "does not register an offense for prose comments" do
+    it 'does not register an offense for prose comments' do
       expect_no_offenses(<<~RUBY)
         # This method handles user authentication
         # and returns a session token
@@ -87,7 +87,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "does not register an offense for documentation" do
+    it 'does not register an offense for documentation' do
       expect_no_offenses(<<~RUBY)
         # @param name [String] the user's name
         # @return [User] the created user
@@ -95,7 +95,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "does not register an offense for rubocop directives" do
+    it 'does not register an offense for rubocop directives' do
       expect_no_offenses(<<~RUBY)
         # rubocop:disable Style/FrozenStringLiteral
         # rubocop:enable Style/FrozenStringLiteral
@@ -104,8 +104,8 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
     end
   end
 
-  context "with inline comments" do
-    it "ignores inline comments that look like code" do
+  context 'with inline comments' do
+    it 'ignores inline comments that look like code' do
       expect_no_offenses(<<~RUBY)
         foo = bar # user.save
         baz = qux # @value = 1
@@ -113,8 +113,8 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
     end
   end
 
-  context "with YARD @example blocks" do
-    it "does not register an offense for code in @example" do
+  context 'with YARD @example blocks' do
+    it 'does not register an offense for code in @example' do
       expect_no_offenses(<<~RUBY)
         # @example Usage
         #   user = User.new(name: "test")
@@ -124,7 +124,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "does not register an offense for multi-line @example with method calls" do
+    it 'does not register an offense for multi-line @example with method calls' do
       expect_no_offenses(<<~RUBY)
         # Provides context for projects.
         #
@@ -137,7 +137,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "does not register an offense for @example with class definition" do
+    it 'does not register an offense for @example with class definition' do
       expect_no_offenses(<<~RUBY)
         # @example Implementing an analyzer
         #   class MyAnalyzer < Base
@@ -151,7 +151,7 @@ RSpec.describe RuboCop::Cop::Claude::NoCommentedCode, :config do
       RUBY
     end
 
-    it "still catches commented code after @example block ends" do
+    it 'still catches commented code after @example block ends' do
       expect_offense(<<~RUBY)
         # @example
         #   user.save!

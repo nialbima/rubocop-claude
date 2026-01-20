@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "lint_roller"
+require 'lint_roller'
 
 module RubocopClaude
   class Plugin < LintRoller::Plugin
     def about
       LintRoller::About.new(
-        name: "rubocop-claude",
+        name: 'rubocop-claude',
         version: VERSION,
-        homepage: "https://github.com/nabm/rubocop-claude",
-        description: "AI-focused Ruby linting - catches common AI coding anti-patterns"
+        homepage: 'https://github.com/nabm/rubocop-claude',
+        description: 'AI-focused Ruby linting - catches common AI coding anti-patterns'
       )
     end
 
@@ -17,7 +17,7 @@ module RubocopClaude
       context.engine == :rubocop
     end
 
-    def rules(context)
+    def rules(_context)
       LintRoller::Rules.new(
         type: :path,
         config_format: :rubocop,
@@ -28,7 +28,7 @@ module RubocopClaude
     private
 
     def config_path
-      File.expand_path("../../../config/default.yml", __FILE__)
+      File.expand_path('../../config/default.yml', __dir__)
     end
   end
 end

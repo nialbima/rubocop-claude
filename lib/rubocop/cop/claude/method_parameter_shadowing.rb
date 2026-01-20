@@ -40,7 +40,7 @@ module RuboCop
       #   end
       #
       class MethodParameterShadowing < Base
-        MSG = "Parameter `%<param>s` shadows instance variable `@%<param>s`. Use a different name."
+        MSG = 'Parameter `%<param>s` shadows instance variable `@%<param>s`. Use a different name.'
 
         # These methods commonly use parameter names matching ivars
         # initialize and setup are the canonical "first assignment" methods
@@ -67,7 +67,7 @@ module RuboCop
 
         def collect_instance_variables(class_node)
           class_node.each_descendant(:ivasgn, :ivar) do |node|
-            ivar_name = node.children.first.to_s.delete_prefix("@")
+            ivar_name = node.children.first.to_s.delete_prefix('@')
             @class_ivars << ivar_name
           end
         end

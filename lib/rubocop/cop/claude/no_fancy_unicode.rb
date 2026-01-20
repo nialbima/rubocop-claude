@@ -75,8 +75,8 @@ module RuboCop
       class NoFancyUnicode < Base
         extend AutoCorrector
 
-        MSG = "Avoid fancy Unicode `%<char>s` (U+%<codepoint>s). " \
-              "Use standard ASCII or add to AllowedUnicode."
+        MSG = 'Avoid fancy Unicode `%<char>s` (U+%<codepoint>s). ' \
+              'Use standard ASCII or add to AllowedUnicode.'
 
         ALLOWED_PATTERN = /[\p{L}\p{M}\p{N}\x20-\x7E\t\n\r]/
 
@@ -138,12 +138,12 @@ module RuboCop
 
         def clean_text(text, char)
           text
-            .gsub(char, "")
-            .gsub(/_+\z/, "")          # Remove trailing underscores at end
+            .gsub(char, '')
+            .gsub(/_+\z/, '')          # Remove trailing underscores at end
             .gsub(/_+(['"])/, '\1')    # Remove trailing underscores before closing quote
-            .gsub(/\s{2,}/, " ")       # Collapse multiple spaces to single space
+            .gsub(/\s{2,}/, ' ')       # Collapse multiple spaces to single space
             .gsub(/\s+(['"])/, '\1')   # Remove trailing space before closing quote
-            .gsub(/\s+\z/, "")         # Remove trailing whitespace at end
+            .gsub(/\s+\z/, '')         # Remove trailing whitespace at end
         end
 
         def find_fancy_unicode(text)
@@ -157,20 +157,20 @@ module RuboCop
         end
 
         def format_message(char)
-          codepoint = char.ord.to_s(16).upcase.rjust(4, "0")
+          codepoint = char.ord.to_s(16).upcase.rjust(4, '0')
           format(MSG, char: char, codepoint: codepoint)
         end
 
         def allow_in_strings?
-          cop_config.fetch("AllowInStrings", false)
+          cop_config.fetch('AllowInStrings', false)
         end
 
         def allow_in_comments?
-          cop_config.fetch("AllowInComments", false)
+          cop_config.fetch('AllowInComments', false)
         end
 
         def allowed_unicode
-          @allowed_unicode ||= Array(cop_config.fetch("AllowedUnicode", []))
+          @allowed_unicode ||= Array(cop_config.fetch('AllowedUnicode', []))
         end
       end
     end

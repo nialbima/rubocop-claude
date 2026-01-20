@@ -44,8 +44,8 @@ module RuboCop
       #
       class NoOverlyDefensiveCode < Base
         MSG_SWALLOW = "Trust internal code. Don't swallow errors with `rescue nil` or `rescue => e; nil`."
-        MSG_CHAIN = "Trust internal code. Excessive safe navigation (%<count>d chained `&.`) suggests " \
-                    "uncertain data model. Use explicit nil checks or fix the source."
+        MSG_CHAIN = 'Trust internal code. Excessive safe navigation (%<count>d chained `&.`) suggests ' \
+                    'uncertain data model. Use explicit nil checks or fix the source.'
 
         def on_resbody(node)
           # Check for rescue that just returns nil
@@ -60,7 +60,7 @@ module RuboCop
 
           # Count chained safe navigation operators
           chain_length = count_safe_nav_chain(node)
-          max_chain = cop_config.fetch("MaxSafeNavigationChain", 2)
+          max_chain = cop_config.fetch('MaxSafeNavigationChain', 2)
 
           return unless chain_length > max_chain
 
@@ -82,9 +82,7 @@ module RuboCop
           return true if body.nil_type?
 
           # Check for explicit `nil` return
-          if body.return_type?
-            return body.children.empty? || body.children.first&.nil_type?
-          end
+          return body.children.empty? || body.children.first&.nil_type? if body.return_type?
 
           false
         end

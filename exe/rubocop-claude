@@ -1,17 +1,17 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "rubocop_claude/generator"
+require 'rubocop_claude/generator'
 
-if ARGV[0] == "init"
+if ARGV[0] == 'init'
   project_root = ARGV[1] || Dir.pwd
   RubocopClaude::Generator.new(project_root).run
 else
-  puts "Usage: rubocop-claude init [project_path]"
+  puts 'Usage: rubocop-claude init [project_path]'
   puts
-  puts "Commands:"
-  puts "  init    Initialize rubocop-claude in a project"
-  puts "          Creates .claude/linting.md with AI-specific linting guidance"
-  puts "          Updates .standard.yml to include the plugin (if exists)"
+  puts 'Commands:'
+  puts '  init    Initialize rubocop-claude in a project'
+  puts '          Creates .claude/linting.md with AI-specific linting guidance'
+  puts '          Updates .standard.yml to include the plugin (if exists)'
   exit 1
 end

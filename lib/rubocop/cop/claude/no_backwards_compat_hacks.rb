@@ -36,7 +36,7 @@ module RuboCop
         DEAD_CODE_COMMENT_PATTERN = /\A#\s*(?:removed|deprecated|legacy|backwards?\s*compat(?:ibility)?|for\s+compat(?:ibility)?|compat(?:ibility)?\s+shim):/i
 
         # Assignment to underscore-prefixed variables (not just _ which is idiomatic for unused block args)
-        UNDERSCORE_ASSIGNMENT_MSG = "Assignment to underscore-prefixed variable"
+        UNDERSCORE_ASSIGNMENT_MSG = 'Assignment to underscore-prefixed variable'
 
         def on_new_investigation
           check_dead_code_comments
@@ -45,7 +45,7 @@ module RuboCop
         # Detect _unused = value patterns
         def on_lvasgn(node)
           var_name = node.children[0].to_s
-          return unless var_name.start_with?("_") && var_name.length > 1
+          return unless var_name.start_with?('_') && var_name.length > 1
 
           # Allow in block parameters context (common Ruby idiom)
           return if in_block_arguments?(node)
@@ -58,7 +58,7 @@ module RuboCop
         # Detect Constant = OtherConstant patterns with backwards compat comments
         def on_casgn(node)
           # Check for re-export patterns: OldName = NewName
-          _, const_name, value = *node
+          _, _, value = *node
           return unless value&.const_type?
 
           # Look for backwards compatibility indicators in nearby comments

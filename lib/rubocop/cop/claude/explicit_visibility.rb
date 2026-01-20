@@ -57,8 +57,8 @@ module RuboCop
 
         VISIBILITY_METHODS = %i[private protected public].freeze
 
-        MSG_USE_MODIFIER = "Use explicit visibility. Place `%<visibility>s` before the method definition."
-        MSG_USE_GROUPED = "Use grouped visibility. Place `%<visibility>s` on its own line before private methods."
+        MSG_USE_MODIFIER = 'Use explicit visibility. Place `%<visibility>s` before the method definition.'
+        MSG_USE_GROUPED = 'Use grouped visibility. Place `%<visibility>s` on its own line before private methods.'
 
         def on_send(node)
           return unless visibility_declaration?(node)
@@ -93,7 +93,7 @@ module RuboCop
         private
 
         def enforced_style
-          cop_config.fetch("EnforcedStyle", "modifier").to_sym
+          cop_config.fetch('EnforcedStyle', 'modifier').to_sym
         end
 
         def visibility_declaration?(node)
@@ -139,14 +139,10 @@ module RuboCop
 
           # Extend to include leading whitespace on the line
           begin_pos = range.begin_pos
-          while begin_pos > 0 && source[begin_pos - 1] =~ /[ \t]/
-            begin_pos -= 1
-          end
+          begin_pos -= 1 while begin_pos > 0 && source[begin_pos - 1] =~ /[ \t]/
 
           # Include the newline before if this is on its own line
-          if begin_pos > 0 && source[begin_pos - 1] == "\n"
-            begin_pos -= 1
-          end
+          begin_pos -= 1 if begin_pos > 0 && source[begin_pos - 1] == "\n"
 
           Parser::Source::Range.new(processed_source.buffer, begin_pos, end_pos)
         end

@@ -21,12 +21,12 @@ module RuboCop
       #   text.match?(/\A\d+\z/)
       #
       class MysteryRegex < Base
-        MSG = "Extract long regex to a named constant. " \
-              "Complex patterns deserve descriptive names."
+        MSG = 'Extract long regex to a named constant. ' \
+              'Complex patterns deserve descriptive names.'
 
         def on_regexp(node)
           regex_content = extract_regex_content(node)
-          max_length = cop_config.fetch("MaxLength", 25)
+          max_length = cop_config.fetch('MaxLength', 25)
 
           return if regex_content.length <= max_length
           return if inside_constant_assignment?(node)
@@ -39,14 +39,14 @@ module RuboCop
         def extract_regex_content(node)
           # Get the regex source without delimiters and flags
           node.children
-            .select { |child| child.is_a?(RuboCop::AST::RegexpNode) || child.is_a?(RuboCop::AST::StrNode) || child.respond_to?(:value) }
-            .map { |child| child.respond_to?(:value) ? child.value : child.source }
-            .join
-        rescue
+              .select { |child| child.is_a?(RuboCop::AST::RegexpNode) || child.is_a?(RuboCop::AST::StrNode) || child.respond_to?(:value) }
+              .map { |child| child.respond_to?(:value) ? child.value : child.source }
+              .join
+        rescue StandardError
           # Fallback: get source and strip delimiters
           source = node.source
           # Remove leading / and trailing /flags
-          source.sub(%r{\A/}, "").sub(%r{/[imxo]*\z}, "")
+          source.sub(%r{\A/}, '').sub(%r{/[imxo]*\z}, '')
         end
 
         def inside_constant_assignment?(node)
