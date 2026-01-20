@@ -1,27 +1,81 @@
-# Ruby Linting
+# Linting
 
-Run `bin/standardrb` before committing. **All warnings and errors are failures** - fix them before proceeding.
+Run `bin/standardrb` (or `bin/rubocop`) before committing. Fix all errors.
 
 ## Quick Reference
 
-When you hit a linting error, read the corresponding guidance file in `.claude/cops/`:
+| Cop | Fix |
+|-----|-----|
+| **Claude/NoFancyUnicode** | Remove emoji and fancy Unicode. Use ASCII text. |
+| **Claude/TaggedComments** | Add attribution: `# TODO: [@handle] description` |
+| **Claude/NoCommentedCode** | Delete commented-out code. Use version control. |
+| **Claude/NoBackwardsCompatHacks** | Delete dead code. Don't preserve for compatibility. |
+| **Claude/NoOverlyDefensiveCode** | Trust internal code. Remove `rescue nil` and excessive `&.` chains. |
+| **Claude/ExplicitVisibility** | Use consistent visibility style (grouped or modifier). |
+| **Claude/MysteryRegex** | Extract long regexes to named constants. |
 
-| Cop | Guidance File |
-|-----|---------------|
-| `Claude/NoFancyUnicode` | `.claude/cops/no-fancy-unicode.md` |
-| `Claude/TaggedComments` | `.claude/cops/tagged-comments.md` |
-| `Claude/NoCommentedCode` | `.claude/cops/no-commented-code.md` |
-| `Claude/NoBackwardsCompatHacks` | `.claude/cops/no-backwards-compat-hacks.md` |
-| `Claude/NoOverlyDefensiveCode` | `.claude/cops/no-overly-defensive-code.md` |
-| `Claude/ExplicitVisibility` | `.claude/cops/explicit-visibility.md` |
-| `Claude/MethodParameterShadowing` | `.claude/cops/method-parameter-shadowing.md` |
-| `Claude/MysteryRegex` | `.claude/cops/mystery-regex.md` |
-| `Style/DisableCopsWithinSourceCodeDirective` | `.claude/cops/disable-cops-directive.md` |
-| `Layout/ClassStructure` | `.claude/cops/class-structure.md` |
-| `Metrics/*` | `.claude/cops/metrics.md` |
+## When to Ask
 
-## Critical Rules
+- If a cop seems wrong for this codebase, ask before disabling
+- If you're unsure how to fix, ask rather than guessing
+- Never add `# rubocop:disable` without discussing first
 
-1. **Warnings ARE failures** - Don't ignore them, don't proceed with warnings
-2. **Never disable cops inline** - Fix the issue or ask for help
-3. **When unsure** - Ask before guessing at a fix
+## Common Patterns
+
+### Tagged Comments
+```ruby
+# bad
+# TODO fix this later
+
+# good
+# TODO: [@username] fix this later
+```
+
+### Commented Code
+```ruby
+# bad - delete this, don't comment it out
+# def old_method
+#   do_something
+# end
+
+# good - just delete it, git has history
+```
+
+### Defensive Code
+```ruby
+# bad - swallowing errors
+result = dangerous_call rescue nil
+
+# bad - excessive safe navigation
+user&.profile&.settings&.value
+
+# bad - defensive nil check
+user && user.name
+
+# good - trust internal code
+result = dangerous_call
+user.profile.settings.value
+user.name
+```
+
+### Visibility Style
+
+Check `.rubocop.yml` for `EnforcedStyle` (grouped or modifier):
+
+```ruby
+# grouped style (default)
+class Foo
+  def public_method; end
+
+  private
+
+  def private_method; end
+end
+
+# modifier style
+class Foo
+  def public_method; end
+
+  private def private_method; end
+end
+```

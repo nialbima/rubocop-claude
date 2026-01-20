@@ -4,7 +4,7 @@ require 'fileutils'
 
 module RubocopClaude
   class Generator
-    TEMPLATES_DIR = File.expand_path('../../templates', __dir__)
+    TEMPLATES_DIR = File.expand_path('../../templates', __dir__).freeze
 
     def initialize(project_root)
       @project_root = project_root

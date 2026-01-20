@@ -70,6 +70,75 @@ Metrics/AbcSize:
   Enabled: true
   Max: 17
 
+# AI writes 80-line methods without blinking. 10 is plenty.
+# CountAsOne prevents array literals from inflating the count.
+Metrics/MethodLength:
+  Enabled: true
+  Max: 10
+  CountComments: false
+  CountAsOne: [array, hash, heredoc, method_call]
+
+# AI creates god classes. 150 lines is generous but catches the worst offenders.
+Metrics/ClassLength:
+  Enabled: true
+  Max: 150
+  CountComments: false
+  CountAsOne: [array, hash, heredoc, method_call]
+
+# More than 5 params? Use an options hash or a parameter object.
+Metrics/ParameterLists:
+  Enabled: true
+  Max: 5
+  CountKeywordArgs: true
+  MaxOptionalParameters: 3
+
+# AI nests 5 levels deep instead of using early returns.
+# Guard clauses are more readable: `return unless valid?` at the top.
+Style/GuardClause:
+  Enabled: true
+  MinBodyLength: 1
+
+# Ruby returns the last expression. Explicit `return` on the last line is noise.
+# AllowMultipleReturnValues permits `return a, b` for tuple returns.
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: true
+
+# ITEMS = ['a', 'b'] is mutable. Always .freeze constants.
+# EnforcedStyle: strict requires freeze even for literals.
+Style/MutableConstant:
+  Enabled: true
+  EnforcedStyle: strict
+
+# Dead parameters after refactoring. Remove them or prefix with _ if interface requires.
+Lint/UnusedMethodArgument:
+  Enabled: true
+  AllowUnusedKeywordArguments: false
+  IgnoreEmptyMethods: true
+  IgnoreNotImplementedMethods: true
+
+# a ? (b ? c : d) : e is unreadable. Use if/else.
+Style/NestedTernaryOperator:
+  Enabled: true
+
+# def process(data, include_extras = false) -> callers see process(data, true).
+# What does true mean? Use keyword args: process(data, include_extras: true).
+Style/OptionalBooleanParameter:
+  Enabled: true
+
+# def calculate(a, b, c) is cryptic. Use real names.
+# Common 2-letter names (id, db, io) are allowed. x, y, z are forbidden.
+Naming/MethodParameterName:
+  Enabled: true
+  MinNameLength: 2
+  AllowedNames: [id, ip, to, by, on, in, at, io, db]
+  ForbiddenNames: [x, y, z]
+
+# a, b, c = 1, 2, 3 is harder to read than three separate lines.
+# Exception: x, y = y, x for swaps is fine (cop handles this).
+Style/ParallelAssignment:
+  Enabled: true
+
 # =============================================================================
 # Custom Claude Cops
 # =============================================================================
