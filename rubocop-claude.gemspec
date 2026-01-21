@@ -6,10 +6,10 @@ Gem::Specification.new do |spec|
   spec.name = 'rubocop-claude'
   spec.version = RubocopClaude::VERSION
   spec.authors = ['Nicholas Marshall']
-  spec.email = ['nicholas@example.com']
+  spec.email = ['nialbima@users.noreply.github.com']
 
   spec.summary = 'AI-focused Ruby linting via StandardRB plugin'
-  spec.description = 'A StandardRB plugin that catches common AI coding anti-patterns and enforces clean Ruby conventions.'
+  spec.description = 'A Rubocop/StandardRB plugin providing automated Rubocop foot-rake feedback to AI coding agents.'
   spec.homepage = 'https://github.com/nabm/rubocop-claude'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.1.0'

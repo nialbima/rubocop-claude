@@ -5,6 +5,8 @@ source 'https://rubygems.org'
 gemspec
 
 group :development, :test do
+
+  gem 'rubocop-claude', require: false
   gem 'rake', '~> 13.0'
   gem 'rspec', '~> 3.0'
   gem 'simplecov', '~> 0.22'

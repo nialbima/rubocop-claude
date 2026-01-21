@@ -41,8 +41,6 @@ Metrics/ClassLength:
   - hash
   - heredoc
   - method_call
-  Exclude:
-  - lib/rubocop_claude/cli.rb
 Metrics/CyclomaticComplexity:
   Enabled: true
   Max: 7

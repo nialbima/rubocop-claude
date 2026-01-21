@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        ruby: ["3.1", "3.2", "3.3", "3.4"]
+
+    name: Test Ruby ${{ matrix.ruby }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Run rubocop
+        run: bundle exec rubocop
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Build gem
+        run: gem build rubocop-claude.gemspec
+
+      - name: Publish to RubyGems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
+        run: gem push *.gem
+
+      - name: Extract release notes from CHANGELOG
+        id: changelog
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          # Extract the section for this version from CHANGELOG.md
+          NOTES=$(awk "/^## \[?${VERSION}\]?/{flag=1; next} /^## \[?[0-9]/{flag=0} flag" CHANGELOG.md)
+          # Handle multi-line output for GitHub Actions
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.notes }}
+          files: "*.gem"
+          generate_release_notes: ${{ steps.changelog.outputs.notes == '' }}

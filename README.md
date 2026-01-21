@@ -1,10 +1,12 @@
 # rubocop-claude
 
 "CUT IT OUT, CLAUDE." doesn't work.
-"Oh look, somehow you failed linting, how rough for you, better fix it! no naps!" does.
+
+"Oh look, somehow you failed linting, how rough for you, better fix it! no naps!" does.s
 
 AI assistants are useful and can write functional code. They also:
-- Hoard old code in a giant pile (probably so they can stare at how shiny it is)
+
+- Love to nap on giant hoards of old code.
 - Build defensive code fortresses EVERYWHERE.
 - Handle explosive errors by adding "okay but what if we just ignored that! look, fixed it!"
 - Add comments everywhere and then pretend you wrote them :unamused:
@@ -28,6 +30,7 @@ rubocop-claude init
 ```
 
 The `init` command will:
+
 1. Create `.claude/linting.md` with instructions for AI assistants
 2. Add `rubocop-claude` to your `.standard.yml` or `.rubocop.yml`
 
@@ -43,7 +46,7 @@ plugins:
 ## Cops
 
 | Cop | Description |
-|-----|-------------|
+| ----- | ------------- |
 | `Claude/NoFancyUnicode` | Flags emoji and fancy Unicode (curly quotes, em-dashes) |
 | `Claude/TaggedComments` | Requires attribution on TODO/FIXME/NOTE comments |
 | `Claude/NoCommentedCode` | Detects commented-out code blocks |
@@ -193,7 +196,7 @@ if input.match?(EMAIL_PATTERN)
 `rubocop-claude init` also enables some defaults in Rubocop that are aimed at keeping AI coders from getting weird with their Ruby. Full config with rationale in `config/default.yml`.
 
 | Cop | Setting | Why |
-|-----|---------|-----|
+| ----- | --------- | ----- |
 | `Style/DisableCopsWithinSourceCodeDirective` | Enabled | AI "fixes" linting by disabling cops. No. |
 | `Layout/ClassStructure` | Enabled | AI scatters methods randomly. Enforce order. |
 | `Style/CommentAnnotation` | `RequireColon: true` | Works with TaggedComments. |
@@ -215,10 +218,6 @@ if input.match?(EMAIL_PATTERN)
 | `Style/ParallelAssignment` | Enabled | One assignment per line. |
 
 **Not enabled:** `Lint/SuppressedException` and `Style/RescueModifier` - our `NoOverlyDefensiveCode` covers these with a unified "trust internal code" message.
-
-**AllCops:**
-- `NewCops: disable` - No surprise failures on RuboCop upgrade
-- `SuggestExtensions: false` - No extension nag messages
 
 ## Claude Integration
 
