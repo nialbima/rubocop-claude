@@ -115,10 +115,9 @@ module RuboCop
             fancy_chars = find_fancy_unicode(comment.text)
             next if fancy_chars.empty?
 
-            fancy_chars.each do |char|
-              add_offense(comment, message: format_message(char)) do |corrector|
-                corrector.replace(comment, clean_text(comment.text, char))
-              end
+            # Report first char but fix ALL chars in one correction
+            add_offense(comment, message: format_message(fancy_chars.first)) do |corrector|
+              corrector.replace(comment, clean_text(comment.text, fancy_chars))
             end
           end
         end
@@ -127,16 +126,16 @@ module RuboCop
           fancy_chars = find_fancy_unicode(value)
           return if fancy_chars.empty?
 
-          fancy_chars.each do |char|
-            add_offense(node, message: format_message(char)) do |corrector|
-              corrector.replace(node, clean_text(node.source, char))
-            end
+          # Report first char but fix ALL chars in one correction
+          add_offense(node, message: format_message(fancy_chars.first)) do |corrector|
+            corrector.replace(node, clean_text(node.source, fancy_chars))
           end
         end
 
-        def clean_text(text, char)
-          text
-            .gsub(char, '')
+        def clean_text(text, chars)
+          result = text.dup
+          Array(chars).each { |char| result.gsub!(char, '') }
+          result
             .gsub(/_+\z/, '')          # Remove trailing underscores at end
             .gsub(/_+(['"])/, '\1')    # Remove trailing underscores before closing quote
             .gsub(/\s{2,}/, ' ')       # Collapse multiple spaces to single space

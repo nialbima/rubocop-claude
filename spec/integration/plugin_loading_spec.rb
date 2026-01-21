@@ -107,11 +107,11 @@ RSpec.describe 'Plugin loading', :integration do
 
   describe 'gemspec metadata' do
     it 'specifies default_lint_roller_plugin' do
-      gemspec_path = File.expand_path('../../../rubocop-claude.gemspec', __dir__)
+      gemspec_path = File.expand_path('../../rubocop-claude.gemspec', __dir__)
       gemspec_content = File.read(gemspec_path)
 
-      expect(gemspec_content).to include("default_lint_roller_plugin")
-      expect(gemspec_content).to include("RubocopClaude::Plugin")
+      expect(gemspec_content).to include('default_lint_roller_plugin')
+      expect(gemspec_content).to include('RubocopClaude::Plugin')
     end
   end
 end

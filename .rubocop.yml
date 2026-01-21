@@ -9,7 +9,6 @@ plugins:
 - rubocop-rspec
 require:
 - "./lib/rubocop-claude"
-- rubocop-claude
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.1

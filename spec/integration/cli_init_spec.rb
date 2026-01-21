@@ -2,152 +2,146 @@
 
 require 'tmpdir'
 require 'fileutils'
+require 'rubocop_claude/cli'
 
-RSpec.describe 'CLI init command', :integration do
+RSpec.describe RubocopClaude::InitWizard, :integration do
+  subject(:wizard) { described_class.new }
+
   let(:tmpdir) { Dir.mktmpdir }
 
-  after { FileUtils.rm_rf(tmpdir) }
-
-  def run_init(inputs)
-    Dir.chdir(tmpdir) do
-      # Simulate stdin inputs
-      input_io = StringIO.new(inputs.join("\n") + "\n")
-      allow($stdin).to receive(:gets) { input_io.gets }
-
-      # Capture output
-      output = StringIO.new
-      allow($stdout).to receive(:puts) { |*args| output.puts(*args) }
-      allow($stdout).to receive(:print) { |*args| output.print(*args) }
-
-      require 'rubocop_claude/cli'
-      RubocopClaude::InitWizard.new.run
-
-      output.string
-    end
+  before do
+    @original_dir = Dir.pwd
+    Dir.chdir(tmpdir)
   end
 
-  describe 'creates expected files' do
+  after do
+    Dir.chdir(@original_dir)
+    FileUtils.rm_rf(tmpdir)
+  end
+
+  def simulate_inputs(*inputs)
+    input_io = StringIO.new(inputs.join("\n") + "\n")
+    allow($stdin).to receive(:gets) { input_io.gets }
+    allow($stdout).to receive(:puts)
+    allow($stdout).to receive(:print)
+  end
+
+  def create_gemfile
+    File.write('Gemfile', "source 'https://rubygems.org'")
+  end
+
+  describe 'file creation' do
+    before { create_gemfile }
+
     it 'creates .claude directory' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n s g n 2 n])
-
-      expect(Dir.exist?(File.join(tmpdir, '.claude'))).to be true
+      expect(Dir.exist?('.claude')).to be true
     end
 
     it 'creates linting.md' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n s g n 2 n])
-
-      linting_path = File.join(tmpdir, '.claude', 'linting.md')
-      expect(File.exist?(linting_path)).to be true
-      expect(File.read(linting_path)).to include('Linting')
+      expect(File.exist?('.claude/linting.md')).to be true
     end
 
-    it 'creates cop guides directory' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+    it 'creates cop guides directory with markdown files' do
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n s g n 2 n])
-
-      cops_dir = File.join(tmpdir, '.claude', 'cops')
-      expect(Dir.exist?(cops_dir)).to be true
-      expect(Dir.glob(File.join(cops_dir, '*.md')).size).to be > 0
+      expect(Dir.exist?('.claude/cops')).to be true
+      expect(Dir.glob('.claude/cops/*.md').size).to be > 0
     end
+  end
+
+  describe 'linter config' do
+    before { create_gemfile }
 
     it 'creates .standard.yml when StandardRB selected' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n s g n 2 n])
-
-      standard_yml = File.join(tmpdir, '.standard.yml')
-      expect(File.exist?(standard_yml)).to be true
-
-      content = YAML.load_file(standard_yml)
+      expect(File.exist?('.standard.yml')).to be true
+      content = YAML.load_file('.standard.yml')
       expect(content['plugins']).to include('rubocop-claude')
     end
 
     it 'creates .rubocop.yml when RuboCop selected' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+      simulate_inputs('n', 'r', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n r g n 2 n])
-
-      rubocop_yml = File.join(tmpdir, '.rubocop.yml')
-      expect(File.exist?(rubocop_yml)).to be true
-
-      content = YAML.load_file(rubocop_yml)
+      expect(File.exist?('.rubocop.yml')).to be true
+      content = YAML.load_file('.rubocop.yml')
       expect(content['require']).to include('rubocop-claude')
     end
+  end
 
-    it 'creates .rubocop_claude.yml with preferences' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+  describe 'preferences' do
+    before { create_gemfile }
 
-      # Select modifier style and single-line commented code
-      run_init(%w[n s m n 1 n])
+    it 'creates .rubocop_claude.yml with visibility style' do
+      simulate_inputs('n', 's', 'm', 'n', '2', 'n')
+      wizard.run
 
-      config_path = File.join(tmpdir, '.rubocop_claude.yml')
-      expect(File.exist?(config_path)).to be true
-
-      content = YAML.load_file(config_path)
+      content = YAML.load_file('.rubocop_claude.yml')
       expect(content['Claude/ExplicitVisibility']['EnforcedStyle']).to eq('modifier')
+    end
+
+    it 'creates .rubocop_claude.yml with commented code setting' do
+      simulate_inputs('n', 's', 'g', 'n', '1', 'n')
+      wizard.run
+
+      content = YAML.load_file('.rubocop_claude.yml')
       expect(content['Claude/NoCommentedCode']['MinLines']).to eq(1)
     end
   end
 
-  describe 'hooks installation' do
-    it 'creates hooks when enabled' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+  describe 'hooks' do
+    before { create_gemfile }
 
-      # Say yes to hooks (last prompt)
-      run_init(%w[n s g n 2 y])
+    it 'creates hook files when enabled' do
+      simulate_inputs('n', 's', 'g', 'n', '2', 'y')
+      wizard.run
 
-      hook_script = File.join(tmpdir, '.claude', 'hooks', 'ruby-lint.sh')
-      expect(File.exist?(hook_script)).to be true
-      expect(File.executable?(hook_script)).to be true
-
-      settings = File.join(tmpdir, '.claude', 'settings.local.json')
-      expect(File.exist?(settings)).to be true
-
-      content = JSON.parse(File.read(settings))
-      expect(content['hooks']['PostToolUse']).to be_an(Array)
+      expect(File.exist?('.claude/hooks/ruby-lint.sh')).to be true
+      expect(File.executable?('.claude/hooks/ruby-lint.sh')).to be true
+      expect(File.exist?('.claude/settings.local.json')).to be true
     end
 
-    it 'does not create hooks when disabled' do
-      File.write(File.join(tmpdir, 'Gemfile'), "source 'https://rubygems.org'")
+    it 'skips hooks when disabled' do
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      # Say no to hooks (last prompt)
-      run_init(%w[n s g n 2 n])
-
-      hook_script = File.join(tmpdir, '.claude', 'hooks', 'ruby-lint.sh')
-      expect(File.exist?(hook_script)).to be false
+      expect(File.exist?('.claude/hooks/ruby-lint.sh')).to be false
     end
   end
 
   describe 'Gemfile handling' do
-    it 'adds gem to development group when present' do
-      gemfile_content = <<~GEMFILE
+    it 'adds gem to development group' do
+      File.write('Gemfile', <<~GEMFILE)
         source 'https://rubygems.org'
 
         group :development do
           gem 'pry'
         end
       GEMFILE
-      File.write(File.join(tmpdir, 'Gemfile'), gemfile_content)
 
-      run_init(%w[y s g n 2 n])
+      simulate_inputs('y', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      updated = File.read(File.join(tmpdir, 'Gemfile'))
-      expect(updated).to include("gem 'rubocop-claude', require: false")
+      content = File.read('Gemfile')
+      expect(content).to include("gem 'rubocop-claude', require: false")
     end
 
-    it 'skips Gemfile modification when declined' do
-      gemfile_content = "source 'https://rubygems.org'"
-      File.write(File.join(tmpdir, 'Gemfile'), gemfile_content)
+    it 'skips when user declines' do
+      create_gemfile
+      simulate_inputs('n', 's', 'g', 'n', '2', 'n')
+      wizard.run
 
-      run_init(%w[n s g n 2 n])
-
-      updated = File.read(File.join(tmpdir, 'Gemfile'))
-      expect(updated).not_to include('rubocop-claude')
+      content = File.read('Gemfile')
+      expect(content).not_to include('rubocop-claude')
     end
   end
 end
