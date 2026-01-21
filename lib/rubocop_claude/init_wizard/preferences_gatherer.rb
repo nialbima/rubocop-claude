@@ -16,6 +16,7 @@ module RubocopClaude
         gather_visibility_style
         gather_emoji_preference
         gather_commented_code_preference
+        gather_hooks_preference
         puts
       end
 
@@ -67,6 +68,13 @@ module RubocopClaude
         min_lines = choice.to_i
         @wizard.add_config_override('Claude/NoCommentedCode', {'MinLines' => min_lines})
         @wizard.add_change("Commented code detection: #{(min_lines == 1) ? "single lines" : "multi-line only"}")
+      end
+
+      def gather_hooks_preference
+        puts
+        puts '  Claude Code hooks auto-lint Ruby files after each edit.'
+        @wizard.install_hooks = @wizard.prompt_yes?('  Install Claude Code hooks?', default: false)
+        @wizard.add_change('Claude Code hooks enabled') if @wizard.install_hooks
       end
     end
   end

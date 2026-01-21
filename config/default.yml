@@ -1,7 +1,7 @@
 # frozen_string_literal: true
-
-require:
-  - rubocop-claude
+#
+# Default configuration for rubocop-claude cops.
+# This file is loaded automatically by the plugin.
 
 AllCops:
   NewCops: disable

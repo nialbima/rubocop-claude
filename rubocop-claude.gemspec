@@ -18,6 +18,7 @@ Gem::Specification.new do |spec|
   spec.metadata['source_code_uri'] = spec.homepage
   spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/main/CHANGELOG.md"
   spec.metadata['rubygems_mfa_required'] = 'true'
+  spec.metadata['default_lint_roller_plugin'] = 'RubocopClaude::Plugin'
 
   spec.files = Dir.glob('{config,lib,templates,exe}/**/*') + %w[
     LICENSE.txt

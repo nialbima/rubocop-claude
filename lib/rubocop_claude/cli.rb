@@ -3,6 +3,7 @@
 require 'fileutils'
 require 'yaml'
 require_relative 'version'
+require_relative 'init_wizard/hooks_installer'
 require_relative 'init_wizard/linter_configurer'
 require_relative 'init_wizard/preferences_gatherer'
 
@@ -51,12 +52,13 @@ module RubocopClaude
     DEVELOPMENT_GROUP_PATTERN = /group\s+:development.*do/m
     DEVELOPMENT_GROUP_CAPTURE = /^(\s*)(group\s+:development.*?do\s*$)/m
 
-    attr_accessor :using_standard
+    attr_accessor :using_standard, :install_hooks
 
     def initialize
       @changes = []
       @config_overrides = {}
       @using_standard = false
+      @install_hooks = false
     end
 
     def run
@@ -157,7 +159,9 @@ module RubocopClaude
 
       create_claude_directory
       create_linting_md
+      create_cop_guides
       create_local_config if @config_overrides.any?
+      create_hooks if @install_hooks
     end
 
     def create_claude_directory
@@ -178,6 +182,18 @@ module RubocopClaude
       FileUtils.cp(source, dest)
       @changes << 'Created .claude/linting.md'
       puts "  Created #{dest}"
+    end
+
+    def create_cop_guides
+      cops_dir = '.claude/cops'
+      FileUtils.mkdir_p(cops_dir)
+
+      source_dir = File.join(TEMPLATES_DIR, 'cops')
+      cop_files = Dir.glob(File.join(source_dir, '*.md'))
+
+      cop_files.each { |src| FileUtils.cp(src, cops_dir) }
+      @changes << "Created .claude/cops/ (#{cop_files.size} guides)"
+      puts "  Created #{cops_dir}/ (#{cop_files.size} cop guides)"
     end
 
     def create_local_config
@@ -201,6 +217,10 @@ module RubocopClaude
       return overrides unless File.exist?(file)
 
       load_yaml(file).merge(overrides)
+    end
+
+    def create_hooks
+      HooksInstaller.new(self).run
     end
 
     def print_summary
