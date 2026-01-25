@@ -69,6 +69,7 @@ module RubocopClaude
       end
 
       def create_standard_config
+        @wizard.using_standard = true
         config = {'plugins' => ['rubocop-claude']}
         @wizard.save_yaml('.standard.yml', config)
         @wizard.add_change('Created .standard.yml with rubocop-claude')

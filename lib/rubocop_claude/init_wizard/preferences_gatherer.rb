@@ -74,7 +74,20 @@ module RubocopClaude
         puts
         puts '  Claude Code hooks auto-lint Ruby files after each edit.'
         @wizard.install_hooks = @wizard.prompt_yes?('  Install Claude Code hooks?', default: false)
-        @wizard.add_change('Claude Code hooks enabled') if @wizard.install_hooks
+        return unless @wizard.install_hooks
+
+        gather_hook_linter_preference
+        @wizard.add_change("Claude Code hooks enabled (#{@wizard.hook_linter})")
+      end
+
+      def gather_hook_linter_preference
+        choice = @wizard.prompt_choice(
+          '  Linter for hooks?',
+          {'r' => 'RuboCop', 's' => 'StandardRB'},
+          default: 'r'
+        )
+
+        @wizard.hook_linter = (choice == 's') ? 'standardrb' : 'rubocop'
       end
     end
   end

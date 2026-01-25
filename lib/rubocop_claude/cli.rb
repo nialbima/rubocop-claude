@@ -52,13 +52,14 @@ module RubocopClaude
     DEVELOPMENT_GROUP_PATTERN = /group\s+:development.*do/m
     DEVELOPMENT_GROUP_CAPTURE = /^(\s*)(group\s+:development.*?do\s*$)/m
 
-    attr_accessor :using_standard, :install_hooks
+    attr_accessor :using_standard, :install_hooks, :hook_linter
 
     def initialize
       @changes = []
       @config_overrides = {}
       @using_standard = false
       @install_hooks = false
+      @hook_linter = 'rubocop'
     end
 
     def run

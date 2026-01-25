@@ -75,3 +75,25 @@ Style/Documentation:
 Style/StringLiterals:
   EnforcedStyle: single_quotes
   ConsistentQuotesInMultiline: true
+
+# Integration tests use descriptive strings for describe blocks
+RSpec/DescribeClass:
+  Exclude:
+  - spec/integration/**/*
+
+# Integration test file names match feature, not class
+RSpec/SpecFilePathFormat:
+  Exclude:
+  - spec/integration/**/*
+
+# Intentional emoji in tests and docs that verify/demonstrate emoji detection
+Claude/NoFancyUnicode:
+  Exclude:
+  - spec/integration/plugin_loading_spec.rb
+  - spec/rubocop/cop/claude/no_fancy_unicode_spec.rb
+  - lib/rubocop/cop/claude/no_fancy_unicode.rb
+
+# Test helpers with self-documenting patterns don't need constants
+Claude/MysteryRegex:
+  Exclude:
+  - spec/**/*

@@ -8,14 +8,14 @@ RSpec.describe RubocopClaude::InitWizard, :integration do
   subject(:wizard) { described_class.new }
 
   let(:tmpdir) { Dir.mktmpdir }
+  let!(:original_dir) { Dir.pwd }
 
   before do
-    @original_dir = Dir.pwd
     Dir.chdir(tmpdir)
   end
 
   after do
-    Dir.chdir(@original_dir)
+    Dir.chdir(original_dir)
     FileUtils.rm_rf(tmpdir)
   end
 
@@ -102,7 +102,7 @@ RSpec.describe RubocopClaude::InitWizard, :integration do
     before { create_gemfile }
 
     it 'creates hook files when enabled' do
-      simulate_inputs('n', 's', 'g', 'n', '2', 'y')
+      simulate_inputs('n', 's', 'g', 'n', '2', 'y', 'r')
       wizard.run
 
       expect(File.exist?('.claude/hooks/ruby-lint.sh')).to be true
