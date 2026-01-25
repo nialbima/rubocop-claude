@@ -64,9 +64,9 @@ module RuboCop
           return if node.parent&.csend_type?
 
           chain_length = count_safe_nav_chain(node)
-          max_chain = cop_config.fetch('MaxSafeNavigationChain', 1)
+          return unless chain_length > max_safe_navigation_chain
 
-          add_offense(node, message: format(MSG_CHAIN, count: chain_length)) if chain_length > max_chain
+          add_offense(node, message: format(MSG_CHAIN, count: chain_length))
         end
 
         private
@@ -148,7 +148,11 @@ module RuboCop
         end
 
         def add_safe_navigator?
-          cop_config.fetch('AddSafeNavigator', false)
+          @add_safe_navigator ||= cop_config.fetch('AddSafeNavigator', false)
+        end
+
+        def max_safe_navigation_chain
+          @max_safe_navigation_chain ||= cop_config.fetch('MaxSafeNavigationChain', 1)
         end
       end
     end

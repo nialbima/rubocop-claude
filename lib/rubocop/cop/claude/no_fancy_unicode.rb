@@ -157,15 +157,15 @@ module RuboCop
         end
 
         def allow_in_strings?
-          cop_config.fetch('AllowInStrings', false)
+          @allow_in_strings ||= cop_config.fetch('AllowInStrings', false)
         end
 
         def allow_in_comments?
-          cop_config.fetch('AllowInComments', false)
+          @allow_in_comments ||= cop_config.fetch('AllowInComments', false)
         end
 
         def allowed_unicode
-          @allowed_unicode ||= Array(cop_config.fetch('AllowedUnicode', []))
+          @allowed_unicode ||= Array(cop_config.fetch('AllowedUnicode', [])).freeze
         end
       end
     end

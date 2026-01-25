@@ -82,5 +82,16 @@ RSpec.describe RubocopClaude::CLI do
         expect(cli).to have_received(:warn).with(/Unknown command: unknown/)
       end
     end
+
+    context 'with init command' do
+      it 'runs the init wizard' do
+        wizard = instance_double(RubocopClaude::InitWizard, run: nil)
+        allow(RubocopClaude::InitWizard).to receive(:new).and_return(wizard)
+
+        cli.run(['init'])
+
+        expect(wizard).to have_received(:run)
+      end
+    end
   end
 end

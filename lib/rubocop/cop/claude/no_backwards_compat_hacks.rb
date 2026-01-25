@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'set'
+
 module RuboCop
   module Cop
     module Claude
@@ -67,6 +69,7 @@ module RuboCop
         UNDERSCORE_ASSIGNMENT_MSG = 'Assignment to underscore-prefixed variable'
 
         def on_new_investigation
+          build_compat_comment_index
           check_dead_code_comments
         end
 
@@ -97,6 +100,13 @@ module RuboCop
 
         private
 
+        def build_compat_comment_index
+          @compat_comment_lines = Set.new
+          processed_source.comments.each do |comment|
+            @compat_comment_lines << comment.location.line if compat_comment?(comment.text)
+          end
+        end
+
         def check_dead_code_comments
           processed_source.comments.each do |comment|
             next unless comment.text.match?(DEAD_CODE_COMMENT_PATTERN)
@@ -111,23 +121,18 @@ module RuboCop
 
         def has_compat_comment_nearby?(node)
           line = node.location.line
-
-          # Check comments on same line or line before
-          processed_source.comments.any? do |comment|
-            comment_line = comment.location.line
-            (comment_line == line || comment_line == line - 1) &&
-              compat_comment?(comment.text)
-          end
+          @compat_comment_lines.include?(line) || @compat_comment_lines.include?(line - 1)
         end
 
         def compat_comment?(text)
-          [COMPAT_KEYWORD_PATTERN, LEGACY_REFERENCE_PATTERN, DEPRECATED_PATTERN, ALIAS_PATTERN].any? do |pattern|
-            text.match?(pattern)
-          end
+          COMPAT_KEYWORD_PATTERN.match?(text) ||
+            LEGACY_REFERENCE_PATTERN.match?(text) ||
+            DEPRECATED_PATTERN.match?(text) ||
+            ALIAS_PATTERN.match?(text)
         end
 
         def check_underscore_assignments?
-          cop_config.fetch('CheckUnderscoreAssignments', false)
+          @check_underscore_assignments ||= cop_config.fetch('CheckUnderscoreAssignments', false)
         end
       end
     end

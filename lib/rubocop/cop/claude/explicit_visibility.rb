@@ -57,7 +57,7 @@ module RuboCop
         private
 
         def enforced_style
-          cop_config.fetch('EnforcedStyle', 'grouped').to_sym
+          @enforced_style ||= cop_config.fetch('EnforcedStyle', 'grouped').to_sym
         end
 
         def standalone_visibility?(node)

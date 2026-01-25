@@ -12,6 +12,7 @@ require_relative 'rubocop/cop/claude/no_backwards_compat_hacks'
 require_relative 'rubocop/cop/claude/no_overly_defensive_code'
 require_relative 'rubocop/cop/claude/explicit_visibility'
 require_relative 'rubocop/cop/claude/mystery_regex'
+require_relative 'rubocop/cop/claude/no_hardcoded_line_numbers'
 
 module RubocopClaude
   class Error < StandardError; end

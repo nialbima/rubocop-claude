@@ -83,7 +83,7 @@ RSpec.describe 'Plugin loading', :integration do
         cop.cop_name.start_with?('Claude/')
       end
 
-      expect(claude_cops.size).to eq(7)
+      expect(claude_cops.size).to eq(8)
     end
 
     it 'can run rubocop with Claude cops' do

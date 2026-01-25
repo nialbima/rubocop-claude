@@ -44,13 +44,9 @@ module RuboCop
       class TaggedComments < Base
         MSG = 'Comments need attribution. Use format: # %<keyword>s: [@handle] description'
 
-        ATTRIBUTION_PATTERN = /\[(?:[\w\s]+-\s*)?@[\w-]+\]/ # Matches valid attribution: [@handle] or [Name - @handle]
+        ATTRIBUTION_PATTERN = /\[(?:[\w\s]+-\s*)?@[\w-]+\]/
 
         def on_new_investigation
-          keywords = cop_config.fetch('Keywords', %w[TODO FIXME NOTE HACK OPTIMIZE REVIEW])
-          pattern_str = "\\A#\\s*(#{keywords.join("|")}):?\\s+(?!\\[[@\\w])"
-          @keyword_regex = Regexp.new(pattern_str, Regexp::IGNORECASE)
-
           processed_source.comments.each do |comment|
             check_comment(comment)
           end
@@ -60,15 +56,21 @@ module RuboCop
 
         def check_comment(comment)
           text = comment.text
-          match = text.match(@keyword_regex)
+          match = text.match(keyword_regex)
           return unless match
 
           keyword = match[1].upcase
-
-          # Check if attribution exists somewhere in the comment
           return if text.match?(ATTRIBUTION_PATTERN)
 
           add_offense(comment, message: format(MSG, keyword: keyword))
+        end
+
+        def keyword_regex
+          @keyword_regex ||= begin
+            keywords = cop_config.fetch('Keywords', %w[TODO FIXME NOTE HACK OPTIMIZE REVIEW])
+            pattern_str = "\\A#\\s*(#{keywords.join("|")}):?\\s+(?!\\[[@\\w])"
+            Regexp.new(pattern_str, Regexp::IGNORECASE)
+          end
         end
       end
     end

@@ -9,10 +9,11 @@ module RubocopClaude
       end
 
       def run
-        case detect_config_type
+        config_type = detect_config_type
+        case config_type
         when :standard then setup_standard_config
         when :rubocop then setup_rubocop_config
-        when :none then create_new_config
+        else create_new_config
         end
       end
 

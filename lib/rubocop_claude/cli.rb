@@ -161,7 +161,7 @@ module RubocopClaude
       create_claude_directory
       create_linting_md
       create_cop_guides
-      create_local_config if @config_overrides.any?
+      create_local_config
       create_hooks if @install_hooks
     end
 
@@ -199,8 +199,6 @@ module RubocopClaude
 
     def create_local_config
       overrides = build_config_overrides
-      return if overrides.empty?
-
       dest = '.rubocop_claude.yml'
       save_yaml(dest, merge_with_existing(dest, overrides))
       @changes << 'Created .rubocop_claude.yml with your preferences'

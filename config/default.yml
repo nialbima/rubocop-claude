@@ -190,3 +190,13 @@ Claude/MysteryRegex:
   Enabled: true
   Description: "Extract long regex to a named constant. Complex patterns deserve descriptive names."
   MaxLength: 25
+
+Claude/NoHardcodedLineNumbers:
+  Enabled: true
+  Description: "Avoid hardcoded line numbers. They become stale when code shifts."
+  CheckComments: true
+  CheckStrings: true
+  MinLineNumber: 1
+  Exclude:
+    - '**/no_hardcoded_line_numbers.rb'
+    - '**/no_hardcoded_line_numbers_spec.rb'

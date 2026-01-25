@@ -34,7 +34,7 @@ module RuboCop
         private
 
         def max_length
-          cop_config.fetch('MaxLength', 25)
+          @max_length ||= cop_config.fetch('MaxLength', 25)
         end
 
         def inside_constant_assignment?(node)

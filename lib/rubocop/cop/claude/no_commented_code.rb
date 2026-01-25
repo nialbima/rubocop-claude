@@ -174,7 +174,7 @@ module RuboCop
         end
 
         def allow_keep?
-          cop_config.fetch('AllowKeep', true)
+          @allow_keep ||= cop_config.fetch('AllowKeep', true)
         end
       end
     end
