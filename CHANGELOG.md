@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0.alpha] - 2025-01-25
+
+First alpha release.
+
+### Added
+
+- `Claude/NoHardcodedLineNumbers` - Flags hardcoded line numbers that become stale
+
 ## [0.0.1] - 2025-01-20
 
 Initial pre-alpha release.

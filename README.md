@@ -2,14 +2,14 @@
 
 "CUT IT OUT, CLAUDE." doesn't work.
 
-"Oh look, somehow you failed linting, how rough for you, better fix it! no naps!" does.s
+"Oh look, somehow you failed linting, how rough for you, better fix it! no naps!" does.
 
 AI assistants are useful and can write functional code. They also:
 
 - Love to nap on giant hoards of old code.
 - Build defensive code fortresses EVERYWHERE.
 - Handle explosive errors by adding "okay but what if we just ignored that! look, fixed it!"
-- Add comments everywhere and then pretend you wrote them :unamused:
+- Add comments everywhere and then pretend you wrote them. 😒
 - Reach for the world's least common Unicode symbols and then get confused when you say "stop it."
 
 This gem tries to make them cut that out.
@@ -54,6 +54,7 @@ plugins:
 | `Claude/NoOverlyDefensiveCode` | Flags `rescue nil`, excessive `&.` chains, defensive nil checks |
 | `Claude/ExplicitVisibility` | Enforces consistent visibility style (grouped or modifier) |
 | `Claude/MysteryRegex` | Flags long regexes that should be extracted to constants |
+| `Claude/NoHardcodedLineNumbers` | Flags hardcoded line numbers that become stale |
 
 ## Configuration
 
@@ -85,6 +86,10 @@ Claude/ExplicitVisibility:
 
 Claude/MysteryRegex:
   MaxLength: 25
+
+Claude/NoHardcodedLineNumbers:
+  CheckComments: true   # Check comments (default: true)
+  CheckStrings: true    # Check string literals (default: true)
 ```
 
 ## Why These Cops?
@@ -189,6 +194,22 @@ if input.match?(/\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\z/)
 # good
 EMAIL_PATTERN = /\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\z/
 if input.match?(EMAIL_PATTERN)
+```
+
+### NoHardcodedLineNumbers
+
+"That line reference is wrong, Claude. The code moved."
+
+```ruby
+# bad
+# see line 42 for details
+# Error at foo.rb:123
+raise "check line 55"
+
+# good
+# see #validate_input for details
+# Error in FooError class
+raise "check validate_input method"
 ```
 
 ## Suggested RuboCop Defaults
