@@ -20,7 +20,7 @@ jobs:
         run: gem build rubocop-claude.gemspec
 
       - name: Upload gem artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rubocop-claude-gem
           path: "*.gem"
