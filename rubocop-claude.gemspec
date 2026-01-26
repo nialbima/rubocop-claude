@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'AI-focused Ruby linting via StandardRB plugin'
   spec.description = 'A Rubocop/StandardRB plugin providing automated Rubocop foot-rake feedback to AI coding agents.'
-  spec.homepage = 'https://github.com/nabm/rubocop-claude'
+  spec.homepage = 'https://github.com/nialbima/rubocop-claude'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.1.0'
 

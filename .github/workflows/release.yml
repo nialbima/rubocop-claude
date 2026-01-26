@@ -6,6 +6,17 @@ on:
       - 'v*'
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec rubocop
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -26,11 +37,8 @@ jobs:
       - name: Run tests
         run: bundle exec rspec
 
-      - name: Run rubocop
-        run: bundle exec rubocop
-
   release:
-    needs: test
+    needs: [lint, test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
