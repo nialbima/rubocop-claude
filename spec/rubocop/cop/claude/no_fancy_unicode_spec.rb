@@ -286,4 +286,29 @@ RSpec.describe RuboCop::Cop::Claude::NoFancyUnicode, :config do
       RUBY
     end
   end
+
+  context 'with Unicode escape sequences' do
+    it 'registers offense but does not autocorrect escape sequences' do
+      # When Unicode is written as \u{...} escape sequence, the source contains
+      # the escape but value contains the actual character. We can't safely
+      # autocorrect by simple string replacement, so we skip correction.
+      expect_offense(<<~'RUBY')
+        message = "Success! \u{1F389}"
+                  ^^^^^^^^^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+      RUBY
+
+      expect_no_corrections
+    end
+
+    it 'still autocorrects literal Unicode characters' do
+      expect_offense(<<~RUBY)
+        message = "Success! 🎉"
+                  ^^^^^^^^^^^^ Avoid fancy Unicode `🎉` (U+1F389). Use standard ASCII or add to AllowedUnicode.
+      RUBY
+
+      expect_correction(<<~RUBY)
+        message = "Success!"
+      RUBY
+    end
+  end
 end

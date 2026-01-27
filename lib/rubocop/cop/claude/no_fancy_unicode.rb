@@ -126,8 +126,15 @@ module RuboCop
           fancy_chars = find_fancy_unicode(value)
           return if fancy_chars.empty?
 
+          # Check if we can safely autocorrect - if the character appears as an
+          # escape sequence in source (e.g., \u{1F389}) but as the actual character
+          # in value (🎉), we can't safely remove it via simple gsub
+          can_autocorrect = fancy_chars.all? { |char| node.source.include?(char) }
+
           # Report first char but fix ALL chars in one correction
           add_offense(node, message: format_message(fancy_chars.first)) do |corrector|
+            next unless can_autocorrect
+
             corrector.replace(node, clean_text(node.source, fancy_chars))
           end
         end
