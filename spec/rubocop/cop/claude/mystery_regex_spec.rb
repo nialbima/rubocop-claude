@@ -60,6 +60,31 @@ RSpec.describe RuboCop::Cop::Claude::MysteryRegex, :config do
     end
   end
 
+  context 'when regex is inside let block' do
+    it 'does not register an offense for let' do
+      expect_no_offenses(<<~RUBY)
+        let(:email_pattern) { /\\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\z/ }
+      RUBY
+    end
+
+    it 'does not register an offense for let!' do
+      expect_no_offenses(<<~RUBY)
+        let!(:url_pattern) { /^https?:\\/\\/[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/ }
+      RUBY
+    end
+
+    it 'does not register an offense for nested regex in let' do
+      expect_no_offenses(<<~RUBY)
+        let(:patterns) do
+          {
+            email: /\\A[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\z/,
+            url: /^https?:\\/\\/[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/
+          }
+        end
+      RUBY
+    end
+  end
+
   context 'with custom MaxLength' do
     let(:cop_config) do
       {
