@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.1] - 2025-01-28
+
+### Fixed
+
+- `Claude/NoFancyUnicode` - Fixed infinite loop when Unicode characters were written as escape sequences (e.g., `\u{1F389}`)
+
+### Changed
+
+- `Claude/MysteryRegex` - Now allows long regexes in RSpec `let` and `let!` blocks
+
 ## [0.1.0] - 2025-01-25
 
 First release.
