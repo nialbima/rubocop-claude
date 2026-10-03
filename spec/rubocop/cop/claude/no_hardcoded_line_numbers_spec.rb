@@ -317,6 +317,19 @@ RSpec.describe RuboCop::Cop::Claude::NoHardcodedLineNumbers, :config do
       RUBY
     end
 
+    it 'inspects a string whose escapes make it invalid UTF-8' do
+      expect_no_offenses(<<~'RUBY')
+        path = "caf\xE9.rb"
+      RUBY
+    end
+
+    it 'flags a line number in a string whose escapes make it invalid UTF-8' do
+      expect_offense(<<~'RUBY')
+        message = "caf\xE9.rb at line 42"
+                  ^^^^^^^^^^^^^^^^^^^^^^^ Avoid hardcoded line number `line 42`. Line numbers shift when code changes.
+      RUBY
+    end
+
     it 'ignores heredocs' do
       expect_no_offenses(<<~RUBY)
         doc = <<~TEXT

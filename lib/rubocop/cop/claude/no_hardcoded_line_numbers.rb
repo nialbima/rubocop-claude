@@ -91,6 +91,10 @@ module RuboCop
 
         def check_for_line_numbers(text, node)
           return if text.nil? || text.empty?
+
+          # A string literal can hold bytes that aren't valid UTF-8 ("\xE9"),
+          # which a regex can't match; check the rest of it.
+          text = text.scrub
           return if matches_ignore_pattern?(text)
 
           match = find_first_line_number(text)
